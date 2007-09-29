@@ -6,7 +6,7 @@
   <groupId>org.antlr</groupId>
   <artifactId>gunit</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>Antlr Gunit</name>
   <description>Unit testing framework for antlr grammars.</description>
 
@@ -17,6 +17,12 @@
     </developer>
   </developers>
   <inceptionYear>2007</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>BSD</name>
+    </license>
+  </licenses>
 
   <build>
     <plugins>
