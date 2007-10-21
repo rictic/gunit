@@ -6,7 +6,7 @@
   <groupId>org.antlr</groupId>
   <artifactId>gunit</artifactId>
   <packaging>jar</packaging>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <name>Antlr Gunit</name>
   <description>Unit testing framework for antlr grammars.</description>
 
@@ -24,7 +24,27 @@
     </license>
   </licenses>
 
+  <distributionManagement>
+    <repository>
+      <id>libs-releases</id>
+      <name>KMD Releases</name>
+      <url>dav:http://code.kmdconsulting.ca/artifactory/libs-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>libs-snapshots</id>
+      <name>KMD Snapshots</name>
+      <url>dav:http://code.kmdconsulting.ca/artifactory/libs-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
