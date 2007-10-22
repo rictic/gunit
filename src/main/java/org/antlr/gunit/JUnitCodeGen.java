@@ -75,16 +75,20 @@ public class JUnitCodeGen {
 		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
 		StringTemplateGroup.registerGroupLoader(loader);
 		StringTemplateGroup.registerDefaultLexer(DefaultTemplateLexer.class);
-		//File templateFileName = new File("junit.stg");
-		//StringTemplateGroup group = new StringTemplateGroup(new FileReader(templateFileName), DefaultTemplateLexer.class);
+		StringBuffer buf = compileToBuffer(junitFileName, lexerName, parserName);
+		writeTestFile(".", junitFileName+".java", buf.toString());
+	}
+
+	public StringBuffer compileToBuffer(String className, String lexerName,
+			String parserName) {
 		StringTemplateGroup group = StringTemplateGroup.loadGroup("junit");
 		StringBuffer buf = new StringBuffer();
-		buf.append(genClassHeader(group, junitFileName));
+		buf.append(genClassHeader(group, className));
 		buf.append(genTestRuleMethods(group));
 		buf.append(genSupportingMethods(group, lexerName, parserName));
 		buf.append(group.getInstanceOf("examineParserExecResult").toString());
 		buf.append("\n\n}");
-		writeTestFile(".", junitFileName+".java", buf.toString());
+		return buf;
 	}
 	
 	protected String genClassHeader(StringTemplateGroup group, String junitFileName) {
