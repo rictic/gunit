@@ -242,7 +242,7 @@ public class gUnitExecuter {
 					String stringResult = String.valueOf(result);
 					String expect = ts.testSuites.get(input).getText();
 					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
-						expect = expect.substring(0, expect.length()-1);
+						expect = expect.substring(1, expect.length()-1);
 					}
 					if( stringResult.equals(expect) ) {
 						numOfSuccess++;
