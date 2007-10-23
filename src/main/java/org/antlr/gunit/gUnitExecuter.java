@@ -168,6 +168,7 @@ public class gUnitExecuter {
 					}
 				}
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
+					numOfFailure++;
 					bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
 					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
 				}
