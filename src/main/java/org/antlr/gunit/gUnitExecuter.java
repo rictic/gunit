@@ -41,15 +41,37 @@ public class gUnitExecuter {
 	protected String stdout;
 
 	protected boolean invalidInput;		// valid input if current index of tokens = size of tokens - 1
+
+	private int numOfTest;
+
+	private int numOfSuccess;
+
+	private int numOfFailure;
+
+	private String title;
+
+	private int numOfInvalidInput;
+
+	private StringBuffer bufInvalid;
+
+	private StringBuffer bufResult;
+
+	private String parserName;
+
+	private String lexerName;
 	
 	public gUnitExecuter(Interp interpreter) {
 		this.interpreter = interpreter;
+		numOfTest = 0;
+		numOfSuccess = 0;
+		numOfFailure = 0;
+		numOfInvalidInput = 0;
+		bufInvalid = new StringBuffer();
+		bufResult = new StringBuffer();
 	}
 	
 	public void execTest() throws IOException{
 		try {
-			String parserName;
-			String lexerName;
 			/** Set up appropriate path for parser/lexer if using package */
 			if (interpreter.header!=null ) {
 				parserName = interpreter.header+"."+interpreter.grammarName+"Parser";
@@ -61,13 +83,6 @@ public class gUnitExecuter {
 			}
 			
 			/*** Start Unit/Functional Testing ***/
-			StringBuffer bufResult = new StringBuffer();
-			StringBuffer bufInvalid = new StringBuffer();
-			String title;
-			int numOfTest = 0;
-			int numOfSuccess = 0;
-			int numOfFailure = 0;
-			int numOfInvalidInput = 0;
 			if ( interpreter.treeGrammarName!=null ) {	// Execute unit test of for tree grammar
 				title = "executing testsuite for tree grammar:"+interpreter.treeGrammarName+" walks "+parserName;
 				for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
