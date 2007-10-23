@@ -85,11 +85,11 @@ public class gUnitExecuter {
 			/*** Start Unit/Functional Testing ***/
 			if ( interpreter.treeGrammarName!=null ) {	// Execute unit test of for tree grammar
 				title = "executing testsuite for tree grammar:"+interpreter.treeGrammarName+" walks "+parserName;
-				executeTreeTests();
+				executeTests(true);
 			}
 			else {	// Execute unit test of for grammar
 				title = "executing testsuite for grammar:"+interpreter.grammarName;
-				executeGrammarTests();
+				executeTests(false);
 			}	// End of exection of unit testing
 
 			interpreter.unitTestResult.append("--------------------------------------------------------------------------------\n");
@@ -127,10 +127,12 @@ public class gUnitExecuter {
 			return runTreeParser(parserName, lexerName, rule, treeRule, input);
 	}
 
-	private void executeGrammarTests() throws Exception {
+	private void executeTests(boolean isTreeTests) throws Exception {
 		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
 			String rule = ts.rule;
 			String treeRule = null;
+			if (isTreeTests)
+				treeRule = ts.treeRule;
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
@@ -205,84 +207,6 @@ public class gUnitExecuter {
 		}
 	}
 
-	private void executeTreeTests() throws Exception {
-		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
-			String rule = ts.rule;
-			String treeRule = ts.treeRule;
-			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
-				numOfTest++;
-				// Run tree parser, and get the return value or stdout or stderr if there is
-				Object result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
-				if ( invalidInput==true ) {
-					numOfInvalidInput++;
-					reportTestHeader(bufInvalid, rule, treeRule);
-					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
-				}
-				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
-					if ( this.stderr==null ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: OK"+"\n");
-						bufResult.append("actual: FAIL"+"\n\n");
-					}
-				}
-				else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
-					if ( this.stderr!=null ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: FAIL"+"\n");
-						bufResult.append("actual: OK"+"\n\n");
-					}
-				}
-				else if ( result==null ) {	// prevent comparing null return
-					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-					bufResult.append("actual: null\n\n");
-				}
-				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETVAL
-					/** Interpreter only compares the return value as String */
-					String stringResult = String.valueOf(result);
-					String expect = ts.testSuites.get(input).getText();
-					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
-						expect = expect.substring(1, expect.length()-1);
-					}
-					if( stringResult.equals(expect) ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: "+expect+"\n");
-						bufResult.append("actual: "+result+"\n\n");
-					}
-				}
-				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
-					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
-				}
-				else {
-					if( result.equals(ts.testSuites.get(input).getText()) ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-						bufResult.append("actual: "+result+"\n\n");
-					}
-				}
-			}
-		}
-	}
-	
 	protected Object runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		/** Set up ANTLR input stream based on input source, file or String */
