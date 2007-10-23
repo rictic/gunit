@@ -85,154 +85,11 @@ public class gUnitExecuter {
 			/*** Start Unit/Functional Testing ***/
 			if ( interpreter.treeGrammarName!=null ) {	// Execute unit test of for tree grammar
 				title = "executing testsuite for tree grammar:"+interpreter.treeGrammarName+" walks "+parserName;
-				for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
-					for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
-						numOfTest++;
-						// Run tree parser, and get the return value or stdout or stderr if there is
-						Object result = runTreeParser(parserName, lexerName, ts.rule, ts.treeRule, input);
-						if ( invalidInput==true ) {
-							numOfInvalidInput++;
-							bufInvalid.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-							bufInvalid.append("invalid input: "+input.testInput+"\n\n");
-						}
-						if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
-							if ( this.stderr==null ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: OK"+"\n");
-								bufResult.append("actual: FAIL"+"\n\n");
-							}
-						}
-						else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
-							if ( this.stderr!=null ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: FAIL"+"\n");
-								bufResult.append("actual: OK"+"\n\n");
-							}
-						}
-						else if ( result==null ) {	// prevent comparing null return
-							numOfFailure++;
-							bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-							bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-							bufResult.append("actual: null\n\n");
-						}
-						else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETVAL
-							/** Interpreter only compares the return value as String */
-							String stringResult = String.valueOf(result);
-							String expect = ts.testSuites.get(input).getText();
-							if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
-								expect = expect.substring(0, expect.length()-1);
-							}
-							if( stringResult.equals(expect) ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: "+expect+"\n");
-								bufResult.append("actual: "+result+"\n\n");
-							}
-						}
-						else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
-							numOfFailure++;
-							bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-							bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
-						}
-						else {
-							if( result.equals(ts.testSuites.get(input).getText()) ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-								bufResult.append("actual: "+result+"\n\n");
-							}
-						}
-					}
-				}
+				executeTreeTests();
 			}
 			else {	// Execute unit test of for grammar
 				title = "executing testsuite for grammar:"+interpreter.grammarName;
-				for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
-					for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
-						numOfTest++;
-						// Run parser, and get the return value or stdout or stderr if there is
-						Object result = runParser(parserName, lexerName, ts.rule, input);
-						if ( invalidInput==true ) {
-							numOfInvalidInput++;
-							bufInvalid.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-							bufInvalid.append("invalid input: "+input.testInput+"\n\n");
-						}
-						if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
-							if ( this.stderr==null ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: OK"+"\n");
-								bufResult.append("actual: FAIL"+"\n\n");
-							}
-						}
-						else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
-							if ( this.stderr!=null ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: FAIL"+"\n");
-								bufResult.append("actual: OK"+"\n\n");
-							}
-						}
-						else if ( result==null ) {	// prevent comparing null return
-							numOfFailure++;
-							bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-							bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-							bufResult.append("actual: null\n\n");
-						}
-						else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETURN
-							/** Interpreter only compares the return value as String */
-							String stringResult = String.valueOf(result);
-							String expect = ts.testSuites.get(input).getText();
-							if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
-								expect = expect.substring(1, expect.length()-1);
-							}
-							if( stringResult.equals(expect) ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: "+expect+"\n");
-								bufResult.append("actual: "+result+"\n\n");
-							}
-						}
-						else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
-							bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-							bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
-						}
-						else {
-							if( result.equals(ts.testSuites.get(input).getText()) ) {
-								numOfSuccess++;
-							}
-							else {
-								numOfFailure++;
-								bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
-								bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-								bufResult.append("actual: "+result+"\n\n");
-							}
-						}
-					}
-				}
+				executeGrammarTests();
 			}	// End of exection of unit testing
 
 			interpreter.unitTestResult.append("--------------------------------------------------------------------------------\n");
@@ -252,6 +109,157 @@ public class gUnitExecuter {
             e.printStackTrace();
             System.exit(1);
         }
+	}
+
+	private void executeGrammarTests() throws Exception {
+		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
+			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
+				numOfTest++;
+				// Run parser, and get the return value or stdout or stderr if there is
+				Object result = runParser(parserName, lexerName, ts.rule, input);
+				if ( invalidInput==true ) {
+					numOfInvalidInput++;
+					bufInvalid.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
+				}
+				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
+					if ( this.stderr==null ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: OK"+"\n");
+						bufResult.append("actual: FAIL"+"\n\n");
+					}
+				}
+				else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
+					if ( this.stderr!=null ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: FAIL"+"\n");
+						bufResult.append("actual: OK"+"\n\n");
+					}
+				}
+				else if ( result==null ) {	// prevent comparing null return
+					numOfFailure++;
+					bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
+					bufResult.append("actual: null\n\n");
+				}
+				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETURN
+					/** Interpreter only compares the return value as String */
+					String stringResult = String.valueOf(result);
+					String expect = ts.testSuites.get(input).getText();
+					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
+						expect = expect.substring(1, expect.length()-1);
+					}
+					if( stringResult.equals(expect) ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: "+expect+"\n");
+						bufResult.append("actual: "+result+"\n\n");
+					}
+				}
+				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
+					bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
+				}
+				else {
+					if( result.equals(ts.testSuites.get(input).getText()) ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
+						bufResult.append("actual: "+result+"\n\n");
+					}
+				}
+			}
+		}
+	}
+
+	private void executeTreeTests() throws Exception {
+		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
+			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
+				numOfTest++;
+				// Run tree parser, and get the return value or stdout or stderr if there is
+				Object result = runTreeParser(parserName, lexerName, ts.rule, ts.treeRule, input);
+				if ( invalidInput==true ) {
+					numOfInvalidInput++;
+					bufInvalid.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
+				}
+				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
+					if ( this.stderr==null ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: OK"+"\n");
+						bufResult.append("actual: FAIL"+"\n\n");
+					}
+				}
+				else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
+					if ( this.stderr!=null ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: FAIL"+"\n");
+						bufResult.append("actual: OK"+"\n\n");
+					}
+				}
+				else if ( result==null ) {	// prevent comparing null return
+					numOfFailure++;
+					bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
+					bufResult.append("actual: null\n\n");
+				}
+				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETVAL
+					/** Interpreter only compares the return value as String */
+					String stringResult = String.valueOf(result);
+					String expect = ts.testSuites.get(input).getText();
+					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
+						expect = expect.substring(0, expect.length()-1);
+					}
+					if( stringResult.equals(expect) ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: "+expect+"\n");
+						bufResult.append("actual: "+result+"\n\n");
+					}
+				}
+				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
+					numOfFailure++;
+					bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
+				}
+				else {
+					if( result.equals(ts.testSuites.get(input).getText()) ) {
+						numOfSuccess++;
+					}
+					else {
+						numOfFailure++;
+						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
+						bufResult.append("actual: "+result+"\n\n");
+					}
+				}
+			}
+		}
 	}
 	
 	protected Object runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
