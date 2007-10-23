@@ -117,6 +117,15 @@ public class gUnitExecuter {
 			buffer.append(treeRule+" walks ");
 		buffer.append(rule + ")" + " - " + "\n");
 	}
+	
+	// TODO: throw more specific exceptions
+	private Object runCorrectParser(String parserName, String lexerName, String rule, String treeRule, gUnitTestInput input) throws Exception
+	{
+		if (treeRule == null)
+			return runParser(parserName, lexerName, rule, input);
+		else
+			return runTreeParser(parserName, lexerName, rule, treeRule, input);
+	}
 
 	private void executeGrammarTests() throws Exception {
 		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
@@ -125,7 +134,7 @@ public class gUnitExecuter {
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
-				Object result = runParser(parserName, lexerName, ts.rule, input);
+				Object result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
 				if ( invalidInput==true ) {
 					numOfInvalidInput++;
 					reportTestHeader(bufInvalid, rule, treeRule);
@@ -203,7 +212,7 @@ public class gUnitExecuter {
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run tree parser, and get the return value or stdout or stderr if there is
-				Object result = runTreeParser(parserName, lexerName, ts.rule, ts.treeRule, input);
+				Object result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
 				if ( invalidInput==true ) {
 					numOfInvalidInput++;
 					reportTestHeader(bufInvalid, rule, treeRule);
