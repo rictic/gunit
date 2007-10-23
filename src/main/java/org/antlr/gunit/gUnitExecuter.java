@@ -110,16 +110,25 @@ public class gUnitExecuter {
             System.exit(1);
         }
 	}
+	
+	private void reportTestHeader(StringBuffer buffer, String rule, String treeRule) {
+		buffer.append("test" + numOfTest + " (");
+		if (treeRule != null)
+			buffer.append(treeRule+" walks ");
+		buffer.append(rule + ")" + " - " + "\n");
+	}
 
 	private void executeGrammarTests() throws Exception {
 		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
+			String rule = ts.rule;
+			String treeRule = null;
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
 				Object result = runParser(parserName, lexerName, ts.rule, input);
 				if ( invalidInput==true ) {
 					numOfInvalidInput++;
-					bufInvalid.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufInvalid, rule, treeRule);
 					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
 				}
 				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
@@ -128,7 +137,7 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: OK"+"\n");
 						bufResult.append("actual: FAIL"+"\n\n");
 					}
@@ -139,14 +148,14 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: FAIL"+"\n");
 						bufResult.append("actual: OK"+"\n\n");
 					}
 				}
 				else if ( result==null ) {	// prevent comparing null return
 					numOfFailure++;
-					bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
 					bufResult.append("actual: null\n\n");
 				}
@@ -162,14 +171,14 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+expect+"\n");
 						bufResult.append("actual: "+result+"\n\n");
 					}
 				}
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
-					bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
 				}
 				else {
@@ -178,7 +187,7 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
 						bufResult.append("actual: "+result+"\n\n");
 					}
@@ -189,13 +198,15 @@ public class gUnitExecuter {
 
 	private void executeTreeTests() throws Exception {
 		for ( gUnitTestSuite ts: interpreter.ruleTestSuites ) {
+			String rule = ts.rule;
+			String treeRule = ts.treeRule;
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run tree parser, and get the return value or stdout or stderr if there is
 				Object result = runTreeParser(parserName, lexerName, ts.rule, ts.treeRule, input);
 				if ( invalidInput==true ) {
 					numOfInvalidInput++;
-					bufInvalid.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufInvalid, rule, treeRule);
 					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
 				}
 				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
@@ -204,7 +215,7 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: OK"+"\n");
 						bufResult.append("actual: FAIL"+"\n\n");
 					}
@@ -215,14 +226,14 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: FAIL"+"\n");
 						bufResult.append("actual: OK"+"\n\n");
 					}
 				}
 				else if ( result==null ) {	// prevent comparing null return
 					numOfFailure++;
-					bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
 					bufResult.append("actual: null\n\n");
 				}
@@ -238,14 +249,14 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+expect+"\n");
 						bufResult.append("actual: "+result+"\n\n");
 					}
 				}
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
-					bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
 				}
 				else {
@@ -254,7 +265,7 @@ public class gUnitExecuter {
 					}
 					else {
 						numOfFailure++;
-						bufResult.append("test"+numOfTest+" ("+ts.treeRule+" walks "+ts.rule+")"+" - "+"\n");
+						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
 						bufResult.append("actual: "+result+"\n\n");
 					}
