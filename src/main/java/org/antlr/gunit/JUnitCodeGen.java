@@ -37,10 +37,20 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JUnitCodeGen {
 	public Interp interpreter;
 	public Map<String, String> ruleWithReturn;
+	
+	private final static Handler console = new ConsoleHandler();
+	private static final Logger logger = Logger.getLogger(JUnitCodeGen.class.getName());
+	static {
+		logger.addHandler(console);
+	}
 	
 	public JUnitCodeGen(Interp interpreter) throws ClassNotFoundException {
 		this.interpreter = interpreter;
@@ -237,14 +247,12 @@ public class JUnitCodeGen {
 			w.close();
 		}
 		catch (IOException ioe) {
-			System.err.println("can't write file");
-			ioe.printStackTrace(System.err);
+			logger.log(Level.SEVERE, "can't write file", ioe);
 		}
 	}
 
 	protected String changeFirstCapital(String ruleName) {
 		String firstChar = String.valueOf(ruleName.charAt(0));
-		ruleName = firstChar.toUpperCase()+ruleName.substring(1);
-		return ruleName;
+		return firstChar.toUpperCase()+ruleName.substring(1);
 	}
 }
