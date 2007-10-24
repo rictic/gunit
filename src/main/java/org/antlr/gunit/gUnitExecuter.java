@@ -40,8 +40,6 @@ public class gUnitExecuter {
 	protected String stderr;
 	protected String stdout;
 
-	protected boolean invalidInput;		// valid input if current index of tokens = size of tokens - 1
-
 	private int numOfTest;
 
 	private int numOfSuccess;
@@ -136,12 +134,16 @@ public class gUnitExecuter {
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
-				Object result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
-				if ( invalidInput==true ) {
+				Object result = null;
+				try {
+					result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
+				} catch ( InvalidInputException e) {
 					numOfInvalidInput++;
 					reportTestHeader(bufInvalid, rule, treeRule);
 					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
+					continue;
 				}
+				
 				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
 					if ( this.stderr==null ) {
 						numOfSuccess++;
@@ -207,6 +209,7 @@ public class gUnitExecuter {
 		}
 	}
 
+	// TODO: throw proper exceptions
 	protected Object runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		/** Set up ANTLR input stream based on input source, file or String */
@@ -283,10 +286,7 @@ public class gUnitExecuter {
             
             /** Invalid input */
             if ( tokens.index()!=tokens.size() ) {
-            	this.invalidInput = true;
-            }
-            else {
-            	this.invalidInput = false;
+            	throw new InvalidInputException();
             }
             
             StreamVacuum stdoutVacuum = new StreamVacuum(pipedIn);
@@ -441,12 +441,9 @@ public class gUnitExecuter {
           
             /** Invalid input */
             if ( tokens.index()!=tokens.size() ) {
-            	this.invalidInput = true;
+            	throw new InvalidInputException();
             }
-            else {
-            	this.invalidInput = false;
-            }
-            
+
             StreamVacuum stdoutVacuum = new StreamVacuum(pipedIn);
 			StreamVacuum stderrVacuum = new StreamVacuum(pipedErrIn);
 			ps.close();
