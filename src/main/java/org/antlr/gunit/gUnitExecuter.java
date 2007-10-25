@@ -36,10 +36,6 @@ import java.lang.reflect.*;
 public class gUnitExecuter {
 	public Interp interpreter;
 	
-	/** If error during execution, store stderr here */
-	protected String stderr;
-	protected String stdout;
-
 	private int numOfTest;
 
 	private int numOfSuccess;
@@ -117,7 +113,7 @@ public class gUnitExecuter {
 	}
 	
 	// TODO: throw more specific exceptions
-	private Object runCorrectParser(String parserName, String lexerName, String rule, String treeRule, gUnitTestInput input) throws Exception
+	private gUnitTestResult runCorrectParser(String parserName, String lexerName, String rule, String treeRule, gUnitTestInput input) throws Exception
 	{
 		if (treeRule == null)
 			return runParser(parserName, lexerName, rule, input);
@@ -134,7 +130,7 @@ public class gUnitExecuter {
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
-				Object result = null;
+				gUnitTestResult result = null;
 				try {
 					result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
 				} catch ( InvalidInputException e) {
@@ -145,7 +141,7 @@ public class gUnitExecuter {
 				}
 				
 				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
-					if ( this.stderr==null ) {
+					if ( result.isSuccess() ) {
 						numOfSuccess++;
 					}
 					else {
@@ -156,7 +152,8 @@ public class gUnitExecuter {
 					}
 				}
 				else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
-					if ( this.stderr!=null ) {
+					// This is a fail test, so unsuccessful == pass
+					if ( !result.isSuccess() ) {
 						numOfSuccess++;
 					}
 					else {
@@ -166,15 +163,15 @@ public class gUnitExecuter {
 						bufResult.append("actual: OK"+"\n\n");
 					}
 				}
-				else if ( result==null ) {	// prevent comparing null return
+				else if ( result.getReturned() == null ) {	// prevent comparing null return
 					numOfFailure++;
 					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
 					bufResult.append("actual: null\n\n");
 				}
-				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETURN
+				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETVAL
 					/** Interpreter only compares the return value as String */
-					String stringResult = String.valueOf(result);
+					String stringResult = String.valueOf(result.getReturned());
 					String expect = ts.testSuites.get(input).getText();
 					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
 						expect = expect.substring(1, expect.length()-1);
@@ -186,7 +183,7 @@ public class gUnitExecuter {
 						numOfFailure++;
 						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+expect+"\n");
-						bufResult.append("actual: "+result+"\n\n");
+						bufResult.append("actual: "+result.getReturned()+"\n\n");
 					}
 				}
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
@@ -195,14 +192,14 @@ public class gUnitExecuter {
 					bufResult.append("\t"+"{ACTION} is not supported in the interpreter yet...\n\n");
 				}
 				else {
-					if( result.equals(ts.testSuites.get(input).getText()) ) {
+					if( result.getReturned().equals(ts.testSuites.get(input).getText()) ) {
 						numOfSuccess++;
 					}
 					else {
 						numOfFailure++;
 						reportTestHeader(bufResult, rule, treeRule);
 						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-						bufResult.append("actual: "+result+"\n\n");
+						bufResult.append("actual: "+result.getReturned()+"\n\n");
 					}
 				}
 			}
@@ -210,7 +207,7 @@ public class gUnitExecuter {
 	}
 
 	// TODO: throw proper exceptions
-	protected Object runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
+	protected gUnitTestResult runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		/** Set up ANTLR input stream based on input source, file or String */
 		if ( testInput.inputIsFile==true ) {
@@ -295,28 +292,24 @@ public class gUnitExecuter {
 			ps2.close();
 			System.setOut(console);			// Reset standard output
 			System.setErr(consoleErr);		// Reset standard err out
-			this.stdout = null;
-			this.stderr = null;
 			stdoutVacuum.start();
 			stderrVacuum.start();			
 			stdoutVacuum.join();
 			stderrVacuum.join();
 			if ( stderrVacuum.toString().length()>0 ) {
-				this.stderr = stderrVacuum.toString();
-				return this.stderr;
+				return new gUnitTestResult(false, stderrVacuum.toString());
 			}
+			String stdout = null;
 			if ( stdoutVacuum.toString().length()>0 ) {
-				this.stdout = stdoutVacuum.toString();
+				stdout = stdoutVacuum.toString();
 			}
 			if ( astString!=null ) {	// Return toStringTree of AST
-				return astString;
+				return new gUnitTestResult(true, stdout, astString);
 			}
 			if ( ruleReturn!=null ) {
-				return ruleReturn;
+				return new gUnitTestResult(true, stdout, ruleReturn);
 			}
-			if ( stderrVacuum.toString().length()==0 && stdoutVacuum.toString().length()==0 ) {
-				return null;
-			}
+			return new gUnitTestResult(true, stdout, stdout);
         } catch (ClassNotFoundException e) {
             e.printStackTrace(); System.exit(1);
         } catch (SecurityException e) {
@@ -334,10 +327,11 @@ public class gUnitExecuter {
         } catch (InterruptedException e) {
 			e.printStackTrace(); System.exit(1);
 		}
-        return stdout;
+        // TODO: verify this:
+        throw new Exception("This should be unreachable?");
 	}
 	
-	protected Object runTreeParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws Exception {
+	protected gUnitTestResult runTreeParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		String treeParserPath;
 		/** Set up ANTLR input stream based on input source, file or String */
@@ -450,28 +444,25 @@ public class gUnitExecuter {
 			ps2.close();
 			System.setOut(console);			// Reset standard output
 			System.setErr(consoleErr);		// Reset standard err out
-			this.stdout = null;
-			this.stderr = null;
 			stdoutVacuum.start();
 			stderrVacuum.start();			
 			stdoutVacuum.join();
 			stderrVacuum.join();
 			if ( stderrVacuum.toString().length()>0 ) {
-				this.stderr = stderrVacuum.toString();
-				return this.stderr;
+				return new gUnitTestResult(false, stderrVacuum.toString());
 			}
+			
+			String stdout = null;
 			if ( stdoutVacuum.toString().length()>0 ) {
-				this.stdout = stdoutVacuum.toString();
+				stdout = stdoutVacuum.toString();
 			}
 			if ( astString!=null ) {	// Return toStringTree of AST
-				return astString;
+				return new gUnitTestResult(true, stdout, astString);
 			}
 			if ( treeRuleReturn!=null ) {
-				return treeRuleReturn;
+				return new gUnitTestResult(true, stdout, treeRuleReturn);
 			}
-			if ( stderrVacuum.toString().length()==0 && stdoutVacuum.toString().length()==0 ) {
-				return null;
-			}
+			return new gUnitTestResult(true, stdout, stdout);
         } catch (ClassNotFoundException e) {
             e.printStackTrace(); System.exit(1);
         } catch (SecurityException e) {
@@ -489,7 +480,8 @@ public class gUnitExecuter {
         } catch (InterruptedException e) {
 			e.printStackTrace(); System.exit(1);
 		}
-        return stdout;
+        // TODO: verify this:
+        throw new Exception("Should not be reachable?");
 	}
 
 	public static class StreamVacuum implements Runnable {
