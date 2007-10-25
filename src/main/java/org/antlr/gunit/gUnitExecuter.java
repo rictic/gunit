@@ -64,7 +64,7 @@ public class gUnitExecuter {
 		bufResult = new StringBuffer();
 	}
 	
-	public void execTest() throws IOException{
+	public String execTest() throws IOException{
 		try {
 			/** Set up appropriate path for parser/lexer if using package */
 			if (interpreter.header!=null ) {
@@ -103,6 +103,7 @@ public class gUnitExecuter {
             e.printStackTrace();
             System.exit(1);
         }
+		return interpreter.unitTestResult.toString();
 	}
 	
 	private void reportTestHeader(StringBuffer buffer, String rule, String treeRule) {

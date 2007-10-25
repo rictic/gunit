@@ -36,13 +36,12 @@ import java.util.List;
  * 	Read a gUnit script, run unit tests or generate a junit file. 
  */
 public class Interp {
-	
 	protected String grammarName;				// targeted grammar for unit test
 	protected String treeGrammarName = null;	// optional, required for testing tree grammar
 	protected String header = null;				// optional, required if using java package
 	protected List<gUnitTestSuite> ruleTestSuites = new ArrayList<gUnitTestSuite>();	// testsuites for each testing rule
 	protected StringBuffer unitTestResult = new StringBuffer();
-    
+
 	public static void main(String[] args) throws Exception {
 		/** Pull char from where? */
 		CharStream input = null;
@@ -63,24 +62,22 @@ public class Interp {
 		else if ( args.length==1 ) {
 			input = new ANTLRFileStream(args[0]);
 		    Interp interpreter = new Interp();
-			interpreter.exec(input);
-			System.out.print(interpreter.unitTestResult.toString());	// unit test result
+			System.out.print(interpreter.exec(input));	// unit test result
 		}
 		else {
 			input = new ANTLRInputStream(System.in);
 			Interp interpreter = new Interp();
-			interpreter.exec(input);
-			System.out.print(interpreter.unitTestResult.toString());	// unit test result
+			System.out.print(interpreter.exec(input));	// unit test result
 		}
 	}
 	
-	public void exec(CharStream input) throws Exception {
+	public String exec(CharStream input) throws Exception {
 		gUnitLexer lexer = new gUnitLexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		gUnitParser parser = new gUnitParser(tokens, this);
 		parser.gUnitDef();	// parse gunit script and save elements to interpreter fields
 		gUnitExecuter executer = new gUnitExecuter(this);
-		executer.execTest();
+		return executer.execTest();
 	}
 	
 	public void gen(CharStream input) throws Exception {
