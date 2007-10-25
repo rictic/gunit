@@ -1,6 +1,6 @@
 /*
- [The "BSD licence"]
- Copyright (c) 2007 Leon, Jen-Yuan Su
+ [The "BSD license"]
+ Copyright (c) 2007 Kenny MacDermid
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,22 @@
 */
 package org.antlr.gunit;
 
-/** A class which wraps all testsuites for an individual rule */
-import java.util.Map;
-import java.util.LinkedHashMap;
+import org.antlr.runtime.Token;
 
-public class gUnitTestSuite {
-	protected String rule;				// rule name for unit testing
-	protected String treeRule = null;	// optional, required for testing tree grammar rule
+public class ReturnTest extends AbstractTest {
+	private final Token retval;
 	
-	/** A map which stores input/output pairs (individual testsuites). 
-	 *  In other words, it maps input data for unit test (gUnitTestInput object)
-	 *  to an expected output (Token object).
-	 */
-	protected Map<gUnitTestInput, AbstractTest> testSuites = new LinkedHashMap<gUnitTestInput, AbstractTest>();
-	
-	public gUnitTestSuite(String rule) {
-		this.rule = rule;
+	public ReturnTest(Token retval) {
+		this.retval = retval;
 	}
-	
-	public gUnitTestSuite(String treeRule, String rule) {
-		this.rule = rule;
-		this.treeRule = treeRule;
+
+	@Override
+	public String getText() {
+		return retval.getText();
+	}
+
+	@Override
+	public int getType() {
+		return retval.getType();
 	}
 }

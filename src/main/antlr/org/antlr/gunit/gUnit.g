@@ -47,10 +47,10 @@ suite	:	r1=ID ('walks' r2=ID)? ':'
 		test[ts]+ {interpreter.ruleTestSuites.add(ts);} ;
 
 test[gUnitTestSuite ts]
-	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), $ok);}
-	|	input fail='FAIL' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), $fail);}
-	|	input 'returns' RETVAL {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), $RETVAL);}
-	|	input '->' output {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), $output.token);}
+	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(true));}
+	|	input fail='FAIL' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(false));}
+	|	input 'returns' RETVAL {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new ReturnTest($RETVAL));}
+	|	input '->' output {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new OutputTest($output.token));}
 	;
 
 input returns [String testInput, boolean inputIsFile]
