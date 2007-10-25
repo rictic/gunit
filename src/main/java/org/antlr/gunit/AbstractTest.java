@@ -1,6 +1,6 @@
 /*
- [The "BSD licence"]
- Copyright (c) 2007 Leon, Jen-Yuan Su
+ [The "BSD license"]
+ Copyright (c) 2007 Kenny MacDermid
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,11 @@
 */
 package org.antlr.gunit;
 
-/** A class which wraps all testsuites for an individual rule */
-import java.util.Map;
-import java.util.LinkedHashMap;
-
-public class gUnitTestSuite {
-	protected String rule;				// rule name for unit testing
-	protected String treeRule = null;	// optional, required for testing tree grammar rule
+public abstract class AbstractTest {
 	
-	/** A map which stores input/output pairs (individual testsuites). 
-	 *  In other words, it maps input data for unit test (gUnitTestInput object)
-	 *  to an expected output (Token object).
-	 */
-	protected Map<gUnitTestInput, AbstractTest> testSuites = new LinkedHashMap<gUnitTestInput, AbstractTest>();
+	// TODO: remove these. They're only used as part of a refactor to keep the
+	//       code cleaner. It is a mock-instanceOf() replacement.
+	public abstract int getType();
+	public abstract String getText();
 	
-	public gUnitTestSuite(String rule) {
-		this.rule = rule;
-	}
-	
-	public gUnitTestSuite(String treeRule, String rule) {
-		this.rule = rule;
-		this.treeRule = treeRule;
-	}
 }
