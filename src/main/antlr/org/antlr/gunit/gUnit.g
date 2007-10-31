@@ -6,21 +6,21 @@ tokens {
 @header {package org.antlr.gunit;}
 @lexer::header {package org.antlr.gunit;}
 @members {
-public Interp interpreter;
-public gUnitParser(TokenStream input, Interp interpreter) {
+public GrammarInfo grammarInfo;
+public gUnitParser(TokenStream input, GrammarInfo grammarInfo) {
 	super(input);
-	this.interpreter = interpreter;
+	this.grammarInfo = grammarInfo;
 }
 }
 
 gUnitDef:	'gunit' g1=ID ('walks' g2=ID)? ';' 
 		{
 		if ( $g2!=null ) {
-			interpreter.grammarName = $g2.text;
-			interpreter.treeGrammarName = $g1.text;
+			grammarInfo.grammarName = $g2.text;
+			grammarInfo.treeGrammarName = $g1.text;
 		}
 		else {
-			interpreter.grammarName = $g1.text;
+			grammarInfo.grammarName = $g1.text;
 		}
 		}
 		header? suite+ ;
@@ -29,7 +29,7 @@ header	:	'@header' ACTION
 		{
 		int pos1; int pos2;
 		if ( (pos1=$ACTION.text.indexOf("package"))!=-1 && (pos2=$ACTION.text.indexOf(';'))!=-1 ) {
-			interpreter.header = $ACTION.text.substring(pos1+8, pos2).trim();
+			grammarInfo.header = $ACTION.text.substring(pos1+8, pos2).trim();
 		}
 		}
 	;
@@ -44,7 +44,7 @@ suite	:	r1=ID ('walks' r2=ID)? ':'
 			ts = new gUnitTestSuite($r1.text);
 		}
 		} 
-		test[ts]+ {interpreter.ruleTestSuites.add(ts);} ;
+		test[ts]+ {grammarInfo.ruleTestSuites.add(ts);} ;
 
 test[gUnitTestSuite ts]
 	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(true));}
