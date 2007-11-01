@@ -16,11 +16,11 @@ public gUnitParser(TokenStream input, GrammarInfo grammarInfo) {
 gUnitDef:	'gunit' g1=ID ('walks' g2=ID)? ';' 
 		{
 		if ( $g2!=null ) {
-			grammarInfo.grammarName = $g2.text;
-			grammarInfo.treeGrammarName = $g1.text;
+			grammarInfo.setGrammarName($g2.text);
+			grammarInfo.setTreeGrammarName($g1.text);
 		}
 		else {
-			grammarInfo.grammarName = $g1.text;
+			grammarInfo.setGrammarName($g1.text);
 		}
 		}
 		header? suite+ ;
@@ -29,7 +29,7 @@ header	:	'@header' ACTION
 		{
 		int pos1; int pos2;
 		if ( (pos1=$ACTION.text.indexOf("package"))!=-1 && (pos2=$ACTION.text.indexOf(';'))!=-1 ) {
-			grammarInfo.header = $ACTION.text.substring(pos1+8, pos2).trim();
+			grammarInfo.setHeader($ACTION.text.substring(pos1+8, pos2).trim());
 		}
 		}
 	;
@@ -44,7 +44,7 @@ suite	:	r1=ID ('walks' r2=ID)? ':'
 			ts = new gUnitTestSuite($r1.text);
 		}
 		} 
-		test[ts]+ {grammarInfo.ruleTestSuites.add(ts);} ;
+		test[ts]+ {grammarInfo.addRuleTestSuite(ts);} ;
 
 test[gUnitTestSuite ts]
 	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(true));}
