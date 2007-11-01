@@ -308,7 +308,8 @@ public class gUnitExecuter {
 				return new gUnitTestResult(true, stdout, astString);
 			}
 			if ( ruleReturn!=null ) {
-				return new gUnitTestResult(true, stdout, ruleReturn);
+				// TODO: this is probably a work around to a bug in converting to an AST tree.
+				return new gUnitTestResult(true, stdout, String.valueOf(ruleReturn));
 			}
 			return new gUnitTestResult(true, stdout, stdout);
         } catch (ClassNotFoundException e) {
@@ -461,7 +462,8 @@ public class gUnitExecuter {
 				return new gUnitTestResult(true, stdout, astString);
 			}
 			if ( treeRuleReturn!=null ) {
-				return new gUnitTestResult(true, stdout, treeRuleReturn);
+				// TODO: again, probably a work around to a bug in converting to astString
+				return new gUnitTestResult(true, stdout, String.valueOf(treeRuleReturn));
 			}
 			return new gUnitTestResult(true, stdout, stdout);
         } catch (ClassNotFoundException e) {

@@ -31,16 +31,14 @@ public class gUnitTestResult {
 	
 	private boolean success;
 	private String output;
-	
-	// TODO: Make this a real type
-	private Object returned = null;
+	private String returned;
 	
 	public gUnitTestResult(boolean success, String output) {
 		this.success = success;
 		this.output = output;
 	}
 	
-	public gUnitTestResult(boolean success, String output, Object returned) {
+	public gUnitTestResult(boolean success, String output, String returned) {
 		this(success, output);
 		this.returned = returned;
 	}
