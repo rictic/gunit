@@ -45,4 +45,21 @@ public class ReturnTest extends AbstractTest {
 	public int getType() {
 		return retval.getType();
 	}
+
+	@Override
+	public String getResult(gUnitTestResult testResult) {
+		
+		return testResult.getReturned();
+	}
+
+	@Override
+	public String getExpected() {
+		String expect = retval.getText();
+		
+		if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
+			expect = expect.substring(1, expect.length()-1);
+		}
+		
+		return expect;
+	}
 }
