@@ -67,43 +67,43 @@ public class gUnitExecuter {
 	public String execTest() throws IOException{
 		try {
 			/** Set up appropriate path for parser/lexer if using package */
-			if (grammarInfo.header!=null ) {
-				parserName = grammarInfo.header+"."+grammarInfo.grammarName+"Parser";
-				lexerName = grammarInfo.header+"."+grammarInfo.grammarName+"Lexer";
+			if (grammarInfo.getHeader()!=null ) {
+				parserName = grammarInfo.getHeader()+"."+grammarInfo.getGrammarName()+"Parser";
+				lexerName = grammarInfo.getHeader()+"."+grammarInfo.getGrammarName()+"Lexer";
 			}
 			else {
-				parserName = grammarInfo.grammarName+"Parser";
-				lexerName = grammarInfo.grammarName+"Lexer";
+				parserName = grammarInfo.getGrammarName()+"Parser";
+				lexerName = grammarInfo.getGrammarName()+"Lexer";
 			}
 			
 			/*** Start Unit/Functional Testing ***/
-			if ( grammarInfo.treeGrammarName!=null ) {	// Execute unit test of for tree grammar
-				title = "executing testsuite for tree grammar:"+grammarInfo.treeGrammarName+" walks "+parserName;
+			if ( grammarInfo.getTreeGrammarName()!=null ) {	// Execute unit test of for tree grammar
+				title = "executing testsuite for tree grammar:"+grammarInfo.getTreeGrammarName()+" walks "+parserName;
 				executeTests(true);
 			}
 			else {	// Execute unit test of for grammar
-				title = "executing testsuite for grammar:"+grammarInfo.grammarName;
+				title = "executing testsuite for grammar:"+grammarInfo.getGrammarName();
 				executeTests(false);
 			}	// End of exection of unit testing
 
-			grammarInfo.unitTestResult.append("--------------------------------------------------------------------------------\n");
-			grammarInfo.unitTestResult.append(title+" with "+numOfTest+" tests\n");
-			grammarInfo.unitTestResult.append("--------------------------------------------------------------------------------\n");
+			grammarInfo.appendUnitTestResult("--------------------------------------------------------------------------------\n");
+			grammarInfo.appendUnitTestResult(title+" with "+numOfTest+" tests\n");
+			grammarInfo.appendUnitTestResult("--------------------------------------------------------------------------------\n");
 			if( numOfFailure>0 ) {
-				grammarInfo.unitTestResult.append(numOfFailure+" failures found:\n");
-				grammarInfo.unitTestResult.append(bufResult.toString()+"\n");
+				grammarInfo.appendUnitTestResult(numOfFailure+" failures found:\n");
+				grammarInfo.appendUnitTestResult(bufResult.toString()+"\n");
 			}
 			if( numOfInvalidInput>0 ) {
-				grammarInfo.unitTestResult.append(numOfInvalidInput+" invalid inputs found:\n");
-				grammarInfo.unitTestResult.append(bufInvalid.toString()+"\n");
+				grammarInfo.appendUnitTestResult(numOfInvalidInput+" invalid inputs found:\n");
+				grammarInfo.appendUnitTestResult(bufInvalid.toString()+"\n");
 			}
-			grammarInfo.unitTestResult.append("Tests run: "+numOfTest+", "+"Failures: "+numOfFailure+"\n\n");
+			grammarInfo.appendUnitTestResult("Tests run: "+numOfTest+", "+"Failures: "+numOfFailure+"\n\n");
 		}
 		catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
-		return grammarInfo.unitTestResult.toString();
+		return grammarInfo.getUnitTestResult();
 	}
 	
 	private void reportTestHeader(StringBuffer buffer, String rule, String treeRule) {
@@ -123,7 +123,7 @@ public class gUnitExecuter {
 	}
 
 	private void executeTests(boolean isTreeTests) throws Exception {
-		for ( gUnitTestSuite ts: grammarInfo.ruleTestSuites ) {
+		for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 			String rule = ts.rule;
 			String treeRule = null;
 			if (isTreeTests)
@@ -343,11 +343,11 @@ public class gUnitExecuter {
 			input = new ANTLRStringStream(testInput.testInput);
 		}
 		/** Set up appropriate path for tree parser if using package */
-		if ( grammarInfo.header!=null ) {
-			treeParserPath = grammarInfo.header+"."+grammarInfo.treeGrammarName;
+		if ( grammarInfo.getHeader()!=null ) {
+			treeParserPath = grammarInfo.getHeader()+"."+grammarInfo.getTreeGrammarName();
 		}
 		else {
-			treeParserPath = grammarInfo.treeGrammarName;
+			treeParserPath = grammarInfo.getTreeGrammarName();
 		}
 		Class lexer = null;
 		Class parser = null;

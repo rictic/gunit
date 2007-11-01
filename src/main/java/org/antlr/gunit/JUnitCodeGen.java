@@ -57,11 +57,11 @@ public class JUnitCodeGen {
 		/** Map the name of rules having return value to its return type */
 		ruleWithReturn = new HashMap<String, String>();
 		Class c;
-		if ( grammarInfo.header!=null ) {	// if using package, get the parser class from appropriate path
-			c = Class.forName(grammarInfo.header+"."+grammarInfo.grammarName+"Parser");
+		if ( grammarInfo.getHeader()!=null ) {	// if using package, get the parser class from appropriate path
+			c = Class.forName(grammarInfo.getHeader()+"."+grammarInfo.getGrammarName()+"Parser");
 		}
 		else {
-			c = Class.forName(grammarInfo.grammarName+"Parser");
+			c = Class.forName(grammarInfo.getGrammarName()+"Parser");
 		}
 	    Method[] methods = c.getDeclaredMethods();
         for(Method method : methods) {
@@ -73,14 +73,14 @@ public class JUnitCodeGen {
 
 	public void compile() throws IOException{
 		String junitFileName;
-		if ( grammarInfo.treeGrammarName!=null ) {
-			junitFileName = "Test"+grammarInfo.treeGrammarName;
+		if ( grammarInfo.getTreeGrammarName()!=null ) {
+			junitFileName = "Test"+grammarInfo.getTreeGrammarName();
 		}
 		else {
-			junitFileName = "Test"+grammarInfo.grammarName;
+			junitFileName = "Test"+grammarInfo.getGrammarName();
 		}
-		String lexerName = grammarInfo.grammarName+"Lexer";
-		String parserName = grammarInfo.grammarName+"Parser";
+		String lexerName = grammarInfo.getGrammarName()+"Lexer";
+		String parserName = grammarInfo.getGrammarName()+"Parser";
 		
 		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
 		StringTemplateGroup.registerGroupLoader(loader);
@@ -103,8 +103,8 @@ public class JUnitCodeGen {
 	
 	protected String genClassHeader(StringTemplateGroup group, String junitFileName) {
 		StringTemplate classHeaderST = group.getInstanceOf("classHeader");
-		if ( grammarInfo.header!=null ) {	// Set up class package if there is
-			classHeaderST.setAttribute("header", "package "+grammarInfo.header+";");
+		if ( grammarInfo.getHeader()!=null ) {	// Set up class package if there is
+			classHeaderST.setAttribute("header", "package "+grammarInfo.getHeader()+";");
 		}
 		classHeaderST.setAttribute("junitFileName", junitFileName);
 		return classHeaderST.toString();
@@ -112,8 +112,8 @@ public class JUnitCodeGen {
 	
 	protected String genTestRuleMethods(StringTemplateGroup group) {
 		StringBuffer buf = new StringBuffer();
-		if ( grammarInfo.treeGrammarName!=null ) {	// Generate junit codes of for tree grammar rule
-			for ( gUnitTestSuite ts: grammarInfo.ruleTestSuites ) {
+		if ( grammarInfo.getTreeGrammarName()!=null ) {	// Generate junit codes of for tree grammar rule
+			for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 				int i = 0;
 				for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 					i++;
@@ -162,7 +162,7 @@ public class JUnitCodeGen {
 			}
 		}
 		else {	// Generate junit codes of for grammar rule
-			for ( gUnitTestSuite ts: grammarInfo.ruleTestSuites ) {
+			for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 				int i = 0;
 				for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 					i++;
@@ -214,18 +214,18 @@ public class JUnitCodeGen {
 		String parserPath;
 		String treeParserPath;
 		/** Set up appropriate class path for parser/tree parser if using package */
-		if ( grammarInfo.header!=null ) {
-			parserPath = grammarInfo.header+"."+parserName;
-			treeParserPath = grammarInfo.header+"."+grammarInfo.treeGrammarName;
+		if ( grammarInfo.getHeader()!=null ) {
+			parserPath = grammarInfo.getHeader()+"."+parserName;
+			treeParserPath = grammarInfo.getHeader()+"."+grammarInfo.getTreeGrammarName();
 		}
 		else {
 			parserPath = parserName;
-			treeParserPath = grammarInfo.treeGrammarName;
+			treeParserPath = grammarInfo.getTreeGrammarName();
 		}
 		/** Set up different parser executer for parser grammar and tree grammar */
-		if ( grammarInfo.treeGrammarName!=null ) {	// Load template for testing tree grammar
+		if ( grammarInfo.getTreeGrammarName()!=null ) {	// Load template for testing tree grammar
 			supportingMethodST = group.getInstanceOf("execTreeParser");
-			supportingMethodST.setAttribute("treeParserName", grammarInfo.treeGrammarName);
+			supportingMethodST.setAttribute("treeParserName", grammarInfo.getTreeGrammarName());
 			supportingMethodST.setAttribute("treeParserPath", treeParserPath);
 		}
 		else {	// Load template for testing grammar
