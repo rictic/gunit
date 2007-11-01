@@ -46,4 +46,14 @@ public class BooleanTest extends AbstractTest {
 		return (ok)? 27 : 28;
 	}
 
+	@Override
+	public String getResult(gUnitTestResult testResult) {
+		return (testResult.isSuccess())? "OK" : "FAIL";
+	}
+
+	@Override
+	public String getExpected() {
+		return (ok)? "OK" : "FAIL";
+	}
+
 }

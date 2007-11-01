@@ -45,4 +45,14 @@ public class OutputTest extends AbstractTest {
 	public int getType() {
 		return token.getType();
 	}
+
+	@Override
+	public String getResult(gUnitTestResult testResult) {
+		return testResult.getReturned();
+	}
+
+	@Override
+	public String getExpected() {
+		return token.getText();
+	}
 }

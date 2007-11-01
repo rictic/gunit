@@ -51,7 +51,7 @@ public class gUnitTestResult {
 		return output;
 	}
 	
-	public Object getReturned() {
+	public String getReturned() {
 		return returned;
 	}
 }

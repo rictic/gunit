@@ -34,4 +34,7 @@ public abstract class AbstractTest {
 	public abstract int getType();
 	public abstract String getText();
 	
+	public abstract String getExpected();
+	public abstract String getResult(gUnitTestResult testResult);
+	
 }

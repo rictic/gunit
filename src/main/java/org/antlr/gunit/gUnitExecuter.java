@@ -141,68 +141,29 @@ public class gUnitExecuter {
 					continue;
 				}
 				
-				if ( ts.testSuites.get(input).getType()==27 ) {	// expected Token: OK
-					if ( result.isSuccess() ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: OK"+"\n");
-						bufResult.append("actual: FAIL"+"\n\n");
-					}
-				}
-				else if ( ts.testSuites.get(input).getType()==28 ) {	// expected Token: FAIL
-					// This is a fail test, so unsuccessful == pass
-					if ( !result.isSuccess() ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: FAIL"+"\n");
-						bufResult.append("actual: OK"+"\n\n");
-					}
-				}
-				else if ( result.getReturned() == null ) {	// prevent comparing null return
+				AbstractTest test = ts.testSuites.get(input);
+				String expected = test.getExpected();
+				String actual = test.getResult(result);
+				if (actual == null) {
 					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
+					bufResult.append("expected: " + expected +"\n");
 					bufResult.append("actual: null\n\n");
 				}
-				else if ( ts.testSuites.get(input).getType()==7 ) {	// expected Token: RETVAL
-					/** grammarInfo only compares the return value as String */
-					String stringResult = String.valueOf(result.getReturned());
-					String expect = ts.testSuites.get(input).getText();
-					if ( expect.charAt(0)=='"' && expect.charAt(expect.length()-1)=='"' ) {
-						expect = expect.substring(1, expect.length()-1);
-					}
-					if( stringResult.equals(expect) ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: "+expect+"\n");
-						bufResult.append("actual: "+result.getReturned()+"\n\n");
-					}
+				else if (expected.equals(actual)) {
+					numOfSuccess++;
 				}
+				// TODO: something with ACTIONS - at least create action test type and throw exception.
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
 					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("\t"+"{ACTION} is not supported in the grammarInfo yet...\n\n");
 				}
 				else {
-					if( result.getReturned().equals(ts.testSuites.get(input).getText()) ) {
-						numOfSuccess++;
-					}
-					else {
-						numOfFailure++;
-						reportTestHeader(bufResult, rule, treeRule);
-						bufResult.append("expected: "+ts.testSuites.get(input).getText()+"\n");
-						bufResult.append("actual: "+result.getReturned()+"\n\n");
-					}
+					numOfFailure++;
+					bufResult.append("expected: " + expected +"\n");
+					bufResult.append("actual: " + actual + "\n\n");
 				}
+				
 			}
 		}
 	}
@@ -307,6 +268,7 @@ public class gUnitExecuter {
 			if ( astString!=null ) {	// Return toStringTree of AST
 				return new gUnitTestResult(true, stdout, astString);
 			}
+			
 			if ( ruleReturn!=null ) {
 				// TODO: this is probably a work around to a bug in converting to an AST tree.
 				return new gUnitTestResult(true, stdout, String.valueOf(ruleReturn));
