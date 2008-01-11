@@ -6,8 +6,9 @@
   <groupId>org.antlr</groupId>
   <artifactId>gunit</artifactId>
   <packaging>jar</packaging>
-  <version>1.0</version>
   <name>Antlr Gunit</name>
+  <version>1.0.1</version>
+  <url>http://www.antlr.org/wiki/display/ANTLR3/gUnit+-+Grammar+Unit+Testing</url>
   <description>Unit testing framework for antlr grammars.</description>
 
   <developers>
@@ -17,6 +18,11 @@
     </developer>
   </developers>
   <inceptionYear>2007</inceptionYear>
+
+  <scm>
+    <url>http://code.kmdconsulting.ca/?p=gunit.git</url>
+    <connection>scm:git:http://code.kmdconsulting.ca/gunit.git</connection>
+  </scm>
 
   <licenses>
     <license>
