@@ -146,6 +146,7 @@ public class gUnitExecuter {
 				String actual = test.getResult(result);
 				if (actual == null) {
 					numOfFailure++;
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: " + expected +"\n");
 					bufResult.append("actual: null\n\n");
 				}
@@ -160,6 +161,7 @@ public class gUnitExecuter {
 				}
 				else {
 					numOfFailure++;
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: " + expected +"\n");
 					bufResult.append("actual: " + actual + "\n\n");
 				}
