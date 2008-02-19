@@ -47,9 +47,9 @@ public class ReturnTest extends AbstractTest {
 	}
 
 	@Override
+	// return ANTLR error msg if test failed
 	public String getResult(gUnitTestResult testResult) {
-		
-		return testResult.getReturned();
+		return (testResult.isSuccess())? testResult.getReturned() : testResult.getOutput();
 	}
 
 	@Override

@@ -146,6 +146,7 @@ public class gUnitExecuter {
 				String actual = test.getResult(result);
 				if (actual == null) {
 					numOfFailure++;
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: " + expected +"\n");
 					bufResult.append("actual: null\n\n");
 				}
@@ -156,10 +157,12 @@ public class gUnitExecuter {
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
 					reportTestHeader(bufResult, rule, treeRule);
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("\t"+"{ACTION} is not supported in the grammarInfo yet...\n\n");
 				}
 				else {
 					numOfFailure++;
+					reportTestHeader(bufResult, rule, treeRule);
 					bufResult.append("expected: " + expected +"\n");
 					bufResult.append("actual: " + actual + "\n\n");
 				}
