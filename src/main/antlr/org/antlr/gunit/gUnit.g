@@ -13,76 +13,82 @@ public gUnitParser(TokenStream input, GrammarInfo grammarInfo) {
 }
 }
 
-gUnitDef:	'gunit' g1=ID ('walks' g2=ID)? ';' 
+gUnitDef:	'gunit' g1=ID 
+		('walks' g2=ID 
 		{
-		if ( $g2!=null ) {
-			grammarInfo.setGrammarName($g2.text);
-			grammarInfo.setTreeGrammarName($g1.text);
+		grammarInfo.setGrammarName($g2.text);
+		grammarInfo.setTreeGrammarName($g1.text);
 		}
-		else {
-			grammarInfo.setGrammarName($g1.text);
-		}
-		}
-		header? suite+ ;
+		)? 
+		';' 
+		{grammarInfo.setGrammarName($g1.text);}
+		header? suite* ;
 
 header	:	'@header' ACTION
 		{
-		int pos1; int pos2;
+		int pos1, pos2;
 		if ( (pos1=$ACTION.text.indexOf("package"))!=-1 && (pos2=$ACTION.text.indexOf(';'))!=-1 ) {
-			grammarInfo.setHeader($ACTION.text.substring(pos1+8, pos2).trim());
+			grammarInfo.setHeader($ACTION.text.substring(pos1+8, pos2).trim());	// substring the package path
+		}
+		else {
+			System.err.println("error(line "+$ACTION.getLine()+"): invalid header");
 		}
 		}
 	;
 		
-suite	:	r1=ID ('walks' r2=ID)? ':' 
-		{
-		gUnitTestSuite ts = null;
-		if ( $r2!=null ) {
-			ts = new gUnitTestSuite($r1.text, $r2.text);
-		}
-		else {
-			ts = new gUnitTestSuite($r1.text);
-		}
-		} 
-		test[ts]+ {grammarInfo.addRuleTestSuite(ts);} ;
-
-test[gUnitTestSuite ts]
-	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(true));}
-	|	input fail='FAIL' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new BooleanTest(false));}
-	|	input 'returns' RETVAL {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new ReturnTest($RETVAL));}
-	|	input '->' output {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile), new OutputTest($output.token));}
+suite	// gUnit test suite based on individual rule
+@init {
+    gUnitTestSuite ts = null;
+}
+	:	r1=ID ('walks' r2=ID {ts = new gUnitTestSuite($r1.text, $r2.text);})? ':' 
+		{ts = new gUnitTestSuite($r1.text);} 
+		test[ts]+ {grammarInfo.addRuleTestSuite(ts);} 
 	;
 
-input returns [String testInput, boolean inputIsFile]
+test[gUnitTestSuite ts]	// individual test within a (rule)testsuite
+	:	input ok='OK' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile, $input.line), new BooleanTest(true));}
+	|	input fail='FAIL' {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile, $input.line), new BooleanTest(false));}
+	|	input 'returns' RETVAL {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile, $input.line), new ReturnTest($RETVAL));}
+	|	input '->' output {$ts.testSuites.put(new gUnitTestInput($input.testInput, $input.inputIsFile, $input.line), new OutputTest($output.token));}
+	;
+
+input returns [String testInput, boolean inputIsFile, int line]
 	:	STRING 
 		{
-		$testInput=$STRING.text.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r");
-		$inputIsFile=false;
+		$testInput = $STRING.text.replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t")
+		.replace("\\b", "\b").replace("\\f", "\f").replace("\\\"", "\"").replace("\\'", "\'").replace("\\\\", "\\");
+		$inputIsFile = false;
+		$line = $STRING.line;
 		}
 	|	ML_STRING
 		{
-		$testInput=$ML_STRING.text;
-		$inputIsFile=false;
+		$testInput = $ML_STRING.text;
+		$inputIsFile = false;
+		$line = $ML_STRING.line;
 		}
 	|	file
 		{
-		$testInput=$file.text;
-		$inputIsFile=true;
+		$testInput = $file.text;
+		$inputIsFile = true;
+		$line = $file.line;
 		}
 	;
 
 output returns [Token token]
 	:	STRING 
 		{
-		$STRING.setText($STRING.text.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r"));
-		$token=$STRING;
+		$STRING.setText($STRING.text.replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t")
+		.replace("\\b", "\b").replace("\\f", "\f").replace("\\\"", "\"").replace("\\'", "\'").replace("\\\\", "\\"));
+		$token = $STRING;
 		}
-	|	ML_STRING {$token=$ML_STRING;}
-	|	AST {$token=$AST;}
-	|	ACTION {$token=$ACTION;}
+	|	ML_STRING {$token = $ML_STRING;}
+	|	AST {$token = $AST;}
+	|	ACTION {$token = $ACTION;}
 	;
 
-file	:	ID EXT?;
+file returns [int line]	
+	:	ID EXT? {$line = $ID.line;}
+	;
 
 
 // L E X I C A L   R U L E S
@@ -95,25 +101,25 @@ ML_COMMENT
 	:	'/*' {$channel=HIDDEN;} .* '*/'
 	;
 
-STRING	:	'"' (STRING_ESC|~('\\'|'"'))* '"' {setText(getText().substring(1, getText().length()-1));}
+STRING	:	'"' ( ESC | ~('\\'|'"') )* '"' {setText(getText().substring(1, getText().length()-1));}
 	;
 
 ML_STRING
 	:	'<<' .* '>>' 
 		{
-		if ( getText().charAt(3)=='\n' && getText().charAt(getText().length()-3)=='\n' ) {
+		if ( getText().charAt(2)=='\n' && getText().charAt(getText().length()-3)=='\n' ) {
 			setText(getText().substring(3, getText().length()-3));
+		}
+		else if ( getText().charAt(2)=='\n' ) {
+			setText(getText().substring(3));
+		}
+		else if ( getText().charAt(getText().length()-3)=='\n' ) {
+			setText(getText().substring(2, getText().length()-3));
 		}
 		else {
 			setText(getText().substring(2, getText().length()-2));
 		}
 		}
-	;
-
-fragment
-STRING_ESC
-	:	'\\"'
-	|	'\\' ~'"'
 	;
 
 ID	:	('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'0'..'9'|'_')*;
@@ -133,7 +139,7 @@ NESTED_RETVAL :
 	']'
 	;
 
-AST	:	NESTED_AST ;
+AST	:	NESTED_AST (' '? NESTED_AST)*;
 
 fragment
 NESTED_AST :
@@ -163,19 +169,35 @@ NESTED_ACTION :
 
 fragment
 CHAR_LITERAL
-	:	'\'' (ESC|~('\\'|'\'')) '\''
+	:	'\'' ( ESC | ~('\''|'\\') ) '\''
 	;
 
 fragment
 STRING_LITERAL
-	:	'"' (ESC|~('\\'|'"'))+ '"'
+	:	'"' ( ESC | ~('\\'|'"') )* '"'
 	;
 
 fragment
-ESC
-	:	'\\\''
-	|	'\\"'
-	|	'\\' ~('\''|'"')
+ESC	:	'\\'
+		(	'n'
+		|	'r'
+		|	't'
+		|	'b'
+		|	'f'
+		|	'"'
+		|	'\''
+		|	'\\'
+		|	'>'
+		|	'u' XDIGIT XDIGIT XDIGIT XDIGIT
+		|	. // unknown, leave as it is
+		)
+	;
+	
+fragment
+XDIGIT :
+		'0' .. '9'
+	|	'a' .. 'f'
+	|	'A' .. 'F'
 	;
 
 WS	:	(	' '
