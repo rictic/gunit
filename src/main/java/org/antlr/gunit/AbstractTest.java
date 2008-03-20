@@ -28,6 +28,9 @@
 package org.antlr.gunit;
 
 public abstract class AbstractTest {
+	// store essential individual test result for string template
+	protected String header;
+	protected String actual;
 	
 	// TODO: remove these. They're only used as part of a refactor to keep the
 	//       code cleaner. It is a mock-instanceOf() replacement.
@@ -36,5 +39,17 @@ public abstract class AbstractTest {
 	
 	public abstract String getExpected();
 	public abstract String getResult(gUnitTestResult testResult);
+	public String getHeader() { return this.header; }
+	public String getActual() { return this.actual; }
 	
+	public void setHeader(String rule, String treeRule, int numOfTest, int line) {
+		StringBuffer buf = new StringBuffer();
+		buf.append("test" + numOfTest + " (");
+		if ( treeRule!=null ) {
+			buf.append(treeRule+" walks ");
+		}
+		buf.append(rule + ", line"+line+")" + " - ");
+		this.header = buf.toString();
+	}
+	public void setActual(String actual) { this.actual = actual; }
 }

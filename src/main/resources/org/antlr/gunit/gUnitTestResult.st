@@ -1,6 +1,6 @@
-/*
+$!
  [The "BSD licence"]
- Copyright (c) 2007 Leon, Jen-Yuan Su
+ Copyright (c) 2008 Leon, Jen-Yuan Su
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -24,22 +24,21 @@
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-package org.antlr.gunit;
+!$
+--------------------------------------------------------------------------------
+$title$ with $num_of_test$ tests
+--------------------------------------------------------------------------------
+$num_of_failure$ failures found:
+$failure:{$it.header$
+expected: $it.expected$
+actual: $it.actual$
 
-/** A class which contains input information of an individual testuite */
-public class gUnitTestInput {
-	protected String testInput;		// a test input string for a testsuite
-	
-	protected boolean inputIsFile;	// if true, the testInput represents a filename
-	
-	protected int line;				// number of line in the script
-	
-	public gUnitTestInput(String testInput, boolean inputIsFile, int line) {
-		this.testInput = testInput;
-		this.inputIsFile = inputIsFile;
-		this.line = line;
-	}
-	
-	public int getLine() { return this.line; }
-}
+}$
+$if(has_invalid)$
+$num_of_invalid$ invalid inputs found:
+$invalid:{$it.header$
+invalid input: $it.actual$
+}$
+$endif$
+
+Tests run: $num_of_test$, Failures: $num_of_failure$

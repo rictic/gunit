@@ -27,11 +27,14 @@
 */
 package org.antlr.gunit;
 
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.reflect.*;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
-
-import java.io.*;
-import java.lang.reflect.*;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.StringTemplateGroup;
 
 public class gUnitExecuter {
 	public GrammarInfo grammarInfo;
@@ -46,13 +49,12 @@ public class gUnitExecuter {
 
 	private int numOfInvalidInput;
 
-	private StringBuffer bufInvalid;
-
-	private StringBuffer bufResult;
-
 	private String parserName;
 
 	private String lexerName;
+	
+	private List<AbstractTest> failures;
+	private List<AbstractTest> invalids;
 	
 	public gUnitExecuter(GrammarInfo grammarInfo) {
 		this.grammarInfo = grammarInfo;
@@ -60,11 +62,14 @@ public class gUnitExecuter {
 		numOfSuccess = 0;
 		numOfFailure = 0;
 		numOfInvalidInput = 0;
-		bufInvalid = new StringBuffer();
-		bufResult = new StringBuffer();
+		failures = new ArrayList<AbstractTest>();
+		invalids = new ArrayList<AbstractTest>();
 	}
 	
 	public String execTest() throws IOException{
+		// Set up string template for testing result
+		StringTemplateGroup templates = new StringTemplateGroup("mygroup", "org/antlr/gunit/");
+		StringTemplate testResultST = templates.getInstanceOf("gUnitTestResult");
 		try {
 			/** Set up appropriate path for parser/lexer if using package */
 			if (grammarInfo.getHeader()!=null ) {
@@ -85,32 +90,25 @@ public class gUnitExecuter {
 				title = "executing testsuite for grammar:"+grammarInfo.getGrammarName();
 				executeTests(false);
 			}	// End of exection of unit testing
-
-			grammarInfo.appendUnitTestResult("--------------------------------------------------------------------------------\n");
-			grammarInfo.appendUnitTestResult(title+" with "+numOfTest+" tests\n");
-			grammarInfo.appendUnitTestResult("--------------------------------------------------------------------------------\n");
-			if( numOfFailure>0 ) {
-				grammarInfo.appendUnitTestResult(numOfFailure+" failures found:\n");
-				grammarInfo.appendUnitTestResult(bufResult.toString()+"\n");
+			
+			// Fill in the template holes with the test results
+			testResultST.setAttribute("title", title);
+			testResultST.setAttribute("num_of_test", numOfTest);
+			testResultST.setAttribute("num_of_failure", numOfFailure);
+			if ( numOfFailure>0 ) {
+				testResultST.setAttribute("failure", failures);
 			}
-			if( numOfInvalidInput>0 ) {
-				grammarInfo.appendUnitTestResult(numOfInvalidInput+" invalid inputs found:\n");
-				grammarInfo.appendUnitTestResult(bufInvalid.toString()+"\n");
+			if ( numOfInvalidInput>0 ) {
+				testResultST.setAttribute("has_invalid", true);
+				testResultST.setAttribute("num_of_invalid", numOfInvalidInput);
+				testResultST.setAttribute("invalid", invalids);
 			}
-			grammarInfo.appendUnitTestResult("Tests run: "+numOfTest+", "+"Failures: "+numOfFailure+"\n\n");
 		}
 		catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
-		return grammarInfo.getUnitTestResult();
-	}
-	
-	private void reportTestHeader(StringBuffer buffer, String rule, String treeRule) {
-		buffer.append("test" + numOfTest + " (");
-		if (treeRule != null)
-			buffer.append(treeRule+" walks ");
-		buffer.append(rule + ")" + " - " + "\n");
+		return testResultST.toString();
 	}
 	
 	// TODO: throw more specific exceptions
@@ -126,29 +124,33 @@ public class gUnitExecuter {
 		for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 			String rule = ts.rule;
 			String treeRule = null;
-			if (isTreeTests)
+			if (isTreeTests) {
 				treeRule = ts.treeRule;
+			}
 			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
 				gUnitTestResult result = null;
+				AbstractTest test = ts.testSuites.get(input);
 				try {
 					result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
 				} catch ( InvalidInputException e) {
 					numOfInvalidInput++;
-					reportTestHeader(bufInvalid, rule, treeRule);
-					bufInvalid.append("invalid input: "+input.testInput+"\n\n");
+					test.setHeader(rule, treeRule, numOfTest, input.getLine());
+					test.setActual(input.testInput);
+					invalids.add(test);
 					continue;
 				}
 				
-				AbstractTest test = ts.testSuites.get(input);
 				String expected = test.getExpected();
 				String actual = test.getResult(result);
+				test.setActual(actual);
+				
 				if (actual == null) {
 					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("expected: " + expected +"\n");
-					bufResult.append("actual: null\n\n");
+					test.setHeader(rule, treeRule, numOfTest, input.getLine());
+					test.setActual("null");
+					failures.add(test);
 				}
 				else if (expected.equals(actual)) {
 					numOfSuccess++;
@@ -156,18 +158,17 @@ public class gUnitExecuter {
 				// TODO: something with ACTIONS - at least create action test type and throw exception.
 				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("\t"+"{ACTION} is not supported in the grammarInfo yet...\n\n");
+					test.setHeader(rule, treeRule, numOfTest, input.getLine());
+					test.setActual("\t"+"{ACTION} is not supported in the grammarInfo yet...");
+					failures.add(test);
 				}
 				else {
 					numOfFailure++;
-					reportTestHeader(bufResult, rule, treeRule);
-					bufResult.append("expected: " + expected +"\n");
-					bufResult.append("actual: " + actual + "\n\n");
+					test.setHeader(rule, treeRule, numOfTest, input.getLine());
+					failures.add(test);
 				}
-				
-			}
-		}
+			}	// end of 2nd for-loop: tests for individual rule
+		}	// end of 1st for-loop: testsuites for grammar
 	}
 
 	// TODO: throw proper exceptions
