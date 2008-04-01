@@ -33,8 +33,11 @@ import java.util.ArrayList;
 import java.lang.reflect.*;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
+import org.antlr.stringtemplate.CommonGroupLoader;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
+import org.antlr.stringtemplate.StringTemplateGroupLoader;
+import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 
 public class gUnitExecuter {
 	public GrammarInfo grammarInfo;
@@ -68,8 +71,7 @@ public class gUnitExecuter {
 	
 	public String execTest() throws IOException{
 		// Set up string template for testing result
-		StringTemplateGroup templates = new StringTemplateGroup("mygroup", "org/antlr/gunit/");
-		StringTemplate testResultST = templates.getInstanceOf("gUnitTestResult");
+		StringTemplate testResultST = getTemplateGroup().getInstanceOf("testResult");
 		try {
 			/** Set up appropriate path for parser/lexer if using package */
 			if (grammarInfo.getHeader()!=null ) {
@@ -109,6 +111,14 @@ public class gUnitExecuter {
             System.exit(1);
         }
 		return testResultST.toString();
+	}
+	
+	private StringTemplateGroup getTemplateGroup() {
+		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
+		StringTemplateGroup.registerGroupLoader(loader);
+		StringTemplateGroup.registerDefaultLexer(DefaultTemplateLexer.class);
+		StringTemplateGroup group = StringTemplateGroup.loadGroup("gUnitTestResult");
+		return group;
 	}
 	
 	// TODO: throw more specific exceptions

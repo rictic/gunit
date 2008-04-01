@@ -111,7 +111,7 @@ ML_STRING
 			setText(getText().substring(3, getText().length()-3));
 		}
 		else if ( getText().charAt(2)=='\n' ) {
-			setText(getText().substring(3));
+			setText(getText().substring(3, getText().length()-2));
 		}
 		else if ( getText().charAt(getText().length()-3)=='\n' ) {
 			setText(getText().substring(2, getText().length()-3));
