@@ -55,5 +55,4 @@ public class BooleanTest extends AbstractTest {
 	public String getExpected() {
 		return (ok)? "OK" : "FAIL";
 	}
-
 }

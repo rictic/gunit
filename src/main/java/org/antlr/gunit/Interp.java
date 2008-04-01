@@ -29,9 +29,6 @@ package org.antlr.gunit;
 
 import org.antlr.runtime.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /** The main gUnit interpreter entry point. 
  * 	Read a gUnit script, run unit tests or generate a junit file. 
  */
@@ -72,7 +69,7 @@ public class Interp {
 		
 		GrammarInfo grammarInfo = new GrammarInfo();
 		gUnitParser parser = new gUnitParser(tokens, grammarInfo);
-		parser.gUnitDef();	// parse gunit script and save elements to interpreter fields
+		parser.gUnitDef();	// parse gunit script and save elements to grammarInfo
 		gUnitExecuter executer = new gUnitExecuter(grammarInfo);
 		return executer.execTest();
 	}
@@ -83,7 +80,7 @@ public class Interp {
 		
 		GrammarInfo grammarInfo = new GrammarInfo();
 		gUnitParser parser = new gUnitParser(tokens, grammarInfo);
-		parser.gUnitDef();	// parse gunit script and save elements to interpreter fields
+		parser.gUnitDef();	// parse gunit script and save elements to grammarInfo
 		JUnitCodeGen generater = new JUnitCodeGen(grammarInfo);
 		generater.compile();
 	}
