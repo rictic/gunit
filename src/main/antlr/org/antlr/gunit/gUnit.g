@@ -13,16 +13,18 @@ public gUnitParser(TokenStream input, GrammarInfo grammarInfo) {
 }
 }
 
-gUnitDef:	'gunit' g1=ID 
-		('walks' g2=ID 
+gUnitDef:	'gunit' g1=ID ('walks' g2=ID)? ';' 
 		{
-		grammarInfo.setGrammarName($g2.text);
-		grammarInfo.setTreeGrammarName($g1.text);
+		if ( $g2==null ) {
+			grammarInfo.setGrammarName($g1.text);
 		}
-		)? 
-		';' 
-		{grammarInfo.setGrammarName($g1.text);}
-		header? suite* ;
+		else {
+			grammarInfo.setGrammarName($g2.text);
+			grammarInfo.setTreeGrammarName($g1.text);
+		}
+		}
+		header? suite*
+	;
 
 header	:	'@header' ACTION
 		{
@@ -40,9 +42,16 @@ suite	// gUnit test suite based on individual rule
 @init {
     gUnitTestSuite ts = null;
 }
-	:	r1=ID ('walks' r2=ID {ts = new gUnitTestSuite($r1.text, $r2.text);})? ':' 
-		{ts = new gUnitTestSuite($r1.text);} 
-		test[ts]+ {grammarInfo.addRuleTestSuite(ts);} 
+	:	r1=ID ('walks' r2=ID)? ':' 
+		{
+		if ( $r2==null ) {
+			ts = new gUnitTestSuite($r1.text);
+		}
+		else {
+			ts = new gUnitTestSuite($r1.text, $r2.text);
+		}
+		}
+		test[ts]+ {grammarInfo.addRuleTestSuite(ts);}
 	;
 
 test[gUnitTestSuite ts]	// individual test within a (rule)testsuite
