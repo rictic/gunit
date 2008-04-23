@@ -42,22 +42,22 @@ import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 public class gUnitExecuter {
 	public GrammarInfo grammarInfo;
 	
-	private int numOfTest;
+	public int numOfTest;
 
-	private int numOfSuccess;
+	public int numOfSuccess;
 
-	private int numOfFailure;
+	public int numOfFailure;
 
 	private String title;
 
-	private int numOfInvalidInput;
+	public int numOfInvalidInput;
 
 	private String parserName;
 
 	private String lexerName;
 	
-	private List<AbstractTest> failures;
-	private List<AbstractTest> invalids;
+	public List<AbstractTest> failures;
+	public List<AbstractTest> invalids;
 	
 	public gUnitExecuter(GrammarInfo grammarInfo) {
 		this.grammarInfo = grammarInfo;

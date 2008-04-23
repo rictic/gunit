@@ -26,6 +26,7 @@
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.antlr.gunit;
+import java.io.IOException;
 
 import org.antlr.runtime.*;
 
@@ -34,54 +35,44 @@ import org.antlr.runtime.*;
  */
 public class Interp {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, RecognitionException {
 		/** Pull char from where? */
 		CharStream input = null;
-		/** Generate junit codes */
+		
+	    /** Generate junit codes */
 		if ( args.length>0 && args[0].equals("-o") ) {
-			if ( args.length==2 ) {
+			if ( args.length==2 )
 				input = new ANTLRFileStream(args[1]);
-			    Interp interpreter = new Interp();
-				interpreter.gen(input);
-			}
-			else {
+			else
 				input = new ANTLRInputStream(System.in);
-				Interp interpreter = new Interp();
-				interpreter.gen(input);
-			}
+			JUnitCodeGen generater = new JUnitCodeGen(parse(input));
+			generater.compile();
+			return;
 		}
+		
+		
 		/** Run gunit tests */
-		else if ( args.length==1 ) {
+		if ( args.length==1 )
 			input = new ANTLRFileStream(args[0]);
-		    Interp interpreter = new Interp();
-			System.out.print(interpreter.exec(input));	// unit test result
-		}
-		else {
+		else
 			input = new ANTLRInputStream(System.in);
-			Interp interpreter = new Interp();
-			System.out.print(interpreter.exec(input));	// unit test result
-		}
+		
+		gUnitExecuter executer = new gUnitExecuter(parse(input));
+		
+		System.out.print(executer.execTest());	// unit test result
+		
+		//return an error code of the number of failures
+		System.exit(executer.failures.size() + executer.invalids.size()); 
 	}
 	
-	public String exec(CharStream input) throws Exception {
+		
+	public static GrammarInfo parse(CharStream input) throws RecognitionException {
 		gUnitLexer lexer = new gUnitLexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		
 		GrammarInfo grammarInfo = new GrammarInfo();
 		gUnitParser parser = new gUnitParser(tokens, grammarInfo);
 		parser.gUnitDef();	// parse gunit script and save elements to grammarInfo
-		gUnitExecuter executer = new gUnitExecuter(grammarInfo);
-		return executer.execTest();
-	}
-	
-	public void gen(CharStream input) throws Exception {
-		gUnitLexer lexer = new gUnitLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		
-		GrammarInfo grammarInfo = new GrammarInfo();
-		gUnitParser parser = new gUnitParser(tokens, grammarInfo);
-		parser.gUnitDef();	// parse gunit script and save elements to grammarInfo
-		JUnitCodeGen generater = new JUnitCodeGen(grammarInfo);
-		generater.compile();
+		return grammarInfo;
 	}
 }
