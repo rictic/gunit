@@ -41,6 +41,7 @@ import org.antlr.stringtemplate.StringTemplateGroupLoader;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 
 public class gUnitExecuter {
+	
 	public GrammarInfo grammarInfo;
 	
 	public int numOfTest;
@@ -49,7 +50,6 @@ public class gUnitExecuter {
 
 	public int numOfFailure;
 
-	private String title;
 
 	public int numOfInvalidInput;
 
@@ -60,7 +60,10 @@ public class gUnitExecuter {
 	public List<AbstractTest> failures;
 	public List<AbstractTest> invalids;
 	
-	public gUnitExecuter(GrammarInfo grammarInfo) {
+	private boolean jsonOutput = false; 
+	public gUnitExecuter(GrammarInfo grammarInfo, String responseType) {
+		if (responseType.equalsIgnoreCase("json"))
+			jsonOutput = true;
 		this.grammarInfo = grammarInfo;
 		numOfTest = 0;
 		numOfSuccess = 0;
@@ -68,6 +71,10 @@ public class gUnitExecuter {
 		numOfInvalidInput = 0;
 		failures = new ArrayList<AbstractTest>();
 		invalids = new ArrayList<AbstractTest>();
+	}
+	
+	public gUnitExecuter(GrammarInfo grammarInfo){
+		this(grammarInfo, "text");
 	}
 	
 	public String execTest() throws IOException {
@@ -86,16 +93,18 @@ public class gUnitExecuter {
 			
 			/*** Start Unit/Functional Testing ***/
 			if ( grammarInfo.getTreeGrammarName()!=null ) {	// Execute unit test of for tree grammar
-				title = "executing testsuite for tree grammar:"+grammarInfo.getTreeGrammarName()+" walks "+parserName;
+				testResultST.setAttribute("kind_of_grammar", "tree grammar");
+				testResultST.setAttribute("grammar_name", grammarInfo.getTreeGrammarName());
+				testResultST.setAttribute("walks", parserName);
 				executeTests(true);
 			}
 			else {	// Execute unit test of for grammar
-				title = "executing testsuite for grammar:"+grammarInfo.getGrammarName();
+				testResultST.setAttribute("grammar_name", grammarInfo.getGrammarName());
+				testResultST.setAttribute("kind_of_grammar", "grammar");
 				executeTests(false);
 			}	// End of exection of unit testing
 			
 			// Fill in the template holes with the test results
-			testResultST.setAttribute("title", title);
 			testResultST.setAttribute("num_of_test", numOfTest);
 			testResultST.setAttribute("num_of_failure", numOfFailure);
 			if ( numOfFailure>0 ) {
@@ -118,14 +127,17 @@ public class gUnitExecuter {
 		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
 		StringTemplateGroup.registerGroupLoader(loader);
 		StringTemplateGroup.registerDefaultLexer(DefaultTemplateLexer.class);
-		StringTemplateGroup group = StringTemplateGroup.loadGroup("gUnitTestResult");
+		String templateName = "gUnitTestResult";
+		if (jsonOutput)
+			templateName = "gUnitJSONResults";
+		StringTemplateGroup group = StringTemplateGroup.loadGroup(templateName);
 		return group;
 	}
 	
 
 	
 	
-	private void executeTests(boolean isTreeTests) throws IOException  {
+	private void executeTests(boolean isTreeTests) throws IOException, ClassNotFoundException  {
 		for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 			String rule = ts.rule;
 			String treeRule = null;
@@ -138,7 +150,7 @@ public class gUnitExecuter {
 				gUnitTestResult result = null;
 				AbstractTest test = ts.testSuites.get(input);
 				try {
-					result = runCorrectParser(parserName, lexerName, rule, treeRule, input);
+					result = runParser(parserName, lexerName, rule, treeRule, input);
 				} catch ( InvalidInputException e) {
 					numOfInvalidInput++;
 					test.setHeader(rule, treeRule, numOfTest, input.getLine());
@@ -176,7 +188,7 @@ public class gUnitExecuter {
 		}	// end of 1st for-loop: testsuites for grammar
 	}
 
-	private gUnitTestResult runCorrectParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException {
+	private gUnitTestResult runParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException, ClassNotFoundException {
 		CharStream input = testInput.getInputStream();
 		String treeParserPath = null;
 		boolean isTreeParser = testTreeRuleName != null;
@@ -259,8 +271,6 @@ public class gUnitExecuter {
 				return new gUnitTestResult(true, stdout, String.valueOf(ruleReturn));
 			}
 			return new gUnitTestResult(true, stdout, stdout);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace(); System.exit(1);
         } catch (SecurityException e) {
             e.printStackTrace(); System.exit(1);
         } catch (NoSuchMethodException e) {
@@ -274,8 +284,8 @@ public class gUnitExecuter {
         } catch (InvocationTargetException e) {
             e.printStackTrace(); System.exit(1);
         }
-        // TODO: verify this:
-        throw new RuntimeException("Should not be reachable?");
+        //unreachable, but required:
+        return null;
 	}
 	
 

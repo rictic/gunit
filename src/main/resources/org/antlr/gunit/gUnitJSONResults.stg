@@ -27,23 +27,27 @@
 */
 group gUnitTestResult;
 
-testResult(num_of_test, kind_of_grammar, grammar_name, walks, num_of_failure, failure, has_invalid, num_of_invalid, invalid) ::= <<
---------------------------------------------------------------------------------
-executing testsuite for <kind_of_grammar>: <grammar_name> <if(walks)> walks <walks><endif> with <num_of_test> tests
---------------------------------------------------------------------------------
-<num_of_failure> failures found:
-<failure:{<it.header>
-expected: <it.expected>
-actual: <it.actual>
-
-}>
-<if(has_invalid)>
-<num_of_invalid> invalid inputs found:
-<invalid:{<it.header>
-invalid input: <it.actual>
-}>
-<endif>
-
-Tests run: <num_of_test>, Failures: <num_of_failure>
+testResult(grammar_name, num_of_test, kind_of_grammar, num_of_failure, failure, has_invalid, num_of_invalid, invalid) ::= <<
+{
+    "grammar": "<grammar_name>",
+    "num_tests": <num_of_test>,
+    "failures": [
+        <failure:{\{   "expected":"<it.expected>",
+    "actual":<if(!it.actual)>null<else>"<it.actual>"<endif>,
+    "rule":"<it.ruleString>",
+    "test_number":<it.testNumber>,
+    "line_number":<it.lineNumber>
+\}}; separator=",
+">
+    ]
+    <if(has_invalid)>
+    "invalid_tests": [
+        <invalid:{\{   "message":"<it.message>",
+    "actual":"<it.actual>"
+\}}; separator=",
+">
+    ]
+    <endif>
+}
 
 >>

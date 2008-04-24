@@ -52,12 +52,18 @@ public class Interp {
 		
 		
 		/** Run gunit tests */
-		if ( args.length==1 )
-			input = new ANTLRFileStream(args[0]);
+		int i = 0;
+		String responseType = "text";
+		if (args.length >= i+1 && args[i].equalsIgnoreCase("-json")){
+			responseType = "json";
+			i += 1;
+		}
+		if ( args.length== i+1 )
+			input = new ANTLRFileStream(args[i]);
 		else
 			input = new ANTLRInputStream(System.in);
 		
-		gUnitExecuter executer = new gUnitExecuter(parse(input));
+		gUnitExecuter executer = new gUnitExecuter(parse(input), responseType);
 		
 		System.out.print(executer.execTest());	// unit test result
 		

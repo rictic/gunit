@@ -41,14 +41,20 @@ public abstract class AbstractTest {
 	public abstract String getResult(gUnitTestResult testResult);
 	public String getHeader() { return this.header; }
 	public String getActual() { return this.actual; }
-	
+	public int testNumber;
+	public int lineNumber;
+	public String ruleString;
 	public void setHeader(String rule, String treeRule, int numOfTest, int line) {
+		this.lineNumber = line;
+		this.testNumber = numOfTest;
 		StringBuffer buf = new StringBuffer();
 		buf.append("test" + numOfTest + " (");
+		ruleString = "";
 		if ( treeRule!=null ) {
-			buf.append(treeRule+" walks ");
+			ruleString += treeRule + " walks ";
 		}
-		buf.append(rule + ", line"+line+")" + " - ");
+		ruleString += rule;
+		buf.append(ruleString + ", line"+line+")" + " - ");
 		this.header = buf.toString();
 	}
 	public void setActual(String actual) { this.actual = actual; }
