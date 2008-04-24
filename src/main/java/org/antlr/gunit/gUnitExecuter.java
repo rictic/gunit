@@ -69,7 +69,7 @@ public class gUnitExecuter {
 		invalids = new ArrayList<AbstractTest>();
 	}
 	
-	public String execTest() throws IOException {
+	public String execTest() throws IOException{
 		// Set up string template for testing result
 		StringTemplate testResultST = getTemplateGroup().getInstanceOf("testResult");
 		try {
@@ -122,14 +122,15 @@ public class gUnitExecuter {
 	}
 	
 	// TODO: throw more specific exceptions
-	private gUnitTestResult runCorrectParser(String parserName, String lexerName, String rule, String treeRule, gUnitTestInput input) throws IOException, InvalidInputException {
+	private gUnitTestResult runCorrectParser(String parserName, String lexerName, String rule, String treeRule, gUnitTestInput input) throws Exception
+	{
 		if (treeRule == null)
 			return runParser(parserName, lexerName, rule, input);
 		else
 			return runTreeParser(parserName, lexerName, rule, treeRule, input);
 	}
 
-	private void executeTests(boolean isTreeTests) throws IOException  {
+	private void executeTests(boolean isTreeTests) throws Exception {
 		for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 			String rule = ts.rule;
 			String treeRule = null;
@@ -181,7 +182,7 @@ public class gUnitExecuter {
 	}
 
 	// TODO: throw proper exceptions
-	protected gUnitTestResult runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException {
+	protected gUnitTestResult runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		/** Set up ANTLR input stream based on input source, file or String */
 		if ( testInput.inputIsFile==true ) {
@@ -195,9 +196,9 @@ public class gUnitExecuter {
         try {
             /** Use Reflection to create instances of lexer and parser */
         	lexer = Class.forName(lexerName);
-            Class<CharStream>[] lexArgTypes = new Class[]{CharStream.class};				// assign type to lexer's args
+            Class[] lexArgTypes = new Class[]{CharStream.class};				// assign type to lexer's args
             Constructor lexConstructor = lexer.getConstructor(lexArgTypes);        
-            CharStream[] lexArgs = new CharStream[]{input};								// assign value to lexer's args   
+            Object[] lexArgs = new Object[]{input};								// assign value to lexer's args   
             Object lexObj = lexConstructor.newInstance(lexArgs);				// makes new instance of lexer    
             
             CommonTokenStream tokens = new CommonTokenStream((Lexer) lexObj);
@@ -220,7 +221,7 @@ public class gUnitExecuter {
             	pipedErrOut.connect(pipedErrIn);
             }
             catch(IOException e) {
-            	System.err.println("connecting Piped Streams together failed...");
+            	System.err.println("connection failed...");
             	System.exit(1);
             }
             PrintStream console = System.out;
@@ -304,10 +305,10 @@ public class gUnitExecuter {
 			e.printStackTrace(); System.exit(1);
 		}
         // TODO: verify this:
-        throw new RuntimeException("This should be unreachable?");
+        throw new Exception("This should be unreachable?");
 	}
 	
-	protected gUnitTestResult runTreeParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException  {
+	protected gUnitTestResult runTreeParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws Exception {
 		CharStream input;
 		String treeParserPath;
 		/** Set up ANTLR input stream based on input source, file or String */
@@ -458,7 +459,7 @@ public class gUnitExecuter {
 			e.printStackTrace(); System.exit(1);
 		}
         // TODO: verify this:
-        throw new RuntimeException("Should not be reachable?");
+        throw new Exception("Should not be reachable?");
 	}
 
 	public static class StreamVacuum implements Runnable {
