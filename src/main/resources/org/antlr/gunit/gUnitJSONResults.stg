@@ -1,6 +1,6 @@
 /*
  [The "BSD licence"]
- Copyright (c) 2007 Leon, Jen-Yuan Su
+ Copyright (c) 2007 Leon, Jen-Yuan Su, Peter Burns
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-group gUnitTestResult;
+group gUnitJSONResults;
 
 testResult(grammar_name, num_of_test, kind_of_grammar, num_of_failure, failure, has_invalid, num_of_invalid, invalid) ::= <<
 {
