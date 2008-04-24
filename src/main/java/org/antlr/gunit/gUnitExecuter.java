@@ -278,9 +278,8 @@ public class gUnitExecuter {
             e.printStackTrace(); System.exit(1);
         } catch (InvocationTargetException e) {
             e.printStackTrace(); System.exit(1);
-        } catch (InterruptedException e) {
-			e.printStackTrace(); System.exit(1);
-		}
+        }
+        
         // TODO: verify this:
         throw new RuntimeException("This should be unreachable?");
 	}
@@ -409,48 +408,8 @@ public class gUnitExecuter {
             e.printStackTrace(); System.exit(1);
         } catch (InvocationTargetException e) {
             e.printStackTrace(); System.exit(1);
-        } catch (InterruptedException e) {
-			e.printStackTrace(); System.exit(1);
-		}
+        }
         // TODO: verify this:
         throw new RuntimeException("Should not be reachable?");
-	}
-
-	public static class StreamVacuum implements Runnable {
-		StringBuffer buf = new StringBuffer();
-		BufferedReader in;
-		Thread sucker;
-		boolean sucked = false;
-		public StreamVacuum(InputStream in) {
-			this.in = new BufferedReader( new InputStreamReader(in) );
-		}
-		public void start() {
-			sucker = new Thread(this);
-			sucker.start();
-		}
-		public void run() {
-			try {
-				String line = in.readLine();
-				while (line!=null) {
-					buf.append(line);
-					buf.append('\n');
-					line = in.readLine();
-				}
-				sucked = true;
-			}
-			catch (IOException ioe) {
-				System.err.println("can't read output from standard (error) output");
-			}
-		}
-		public boolean finished() {
-			return sucked;
-		}
-		/** wait for the thread to finish */
-		public void join() throws InterruptedException {
-			sucker.join();
-		}
-		public String toString() {
-			return buf.toString();
-		}
 	}
 }
