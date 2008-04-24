@@ -210,26 +210,8 @@ public class gUnitExecuter {
             
             Method ruleName = parser.getMethod(testRuleName);
             
-            /** Start of I/O Redirecting */
-            PipedInputStream pipedIn = new PipedInputStream();
-            PipedOutputStream pipedOut = new PipedOutputStream();
-            PipedInputStream pipedErrIn = new PipedInputStream();
-            PipedOutputStream pipedErrOut = new PipedOutputStream();
-            try {
-            	pipedOut.connect(pipedIn);
-            	pipedErrOut.connect(pipedErrIn);
-            }
-            catch(IOException e) {
-            	System.err.println("connecting Piped Streams together failed...");
-            	System.exit(1);
-            }
-            PrintStream console = System.out;
-            PrintStream consoleErr = System.err;
-            PrintStream ps = new PrintStream(pipedOut);
-            PrintStream ps2 = new PrintStream(pipedErrOut);
-            System.setOut(ps);
-            System.setErr(ps2);
-            /** End of redirecting */
+            RedirectedIO subIO = new RedirectedIO();
+            subIO.beginRedirecting();
 
             /** Invoke grammar rule, and store if there is a return value */
             Object ruleReturn = ruleName.invoke(parObj);
@@ -243,8 +225,7 @@ public class gUnitExecuter {
                 		Method[] methods = _return.getDeclaredMethods();
                 		for(Method method : methods) {
 			                if ( method.getName().equals("getTree") ) {
-			                	Method returnName = _return.getMethod("getTree");
-		                    	CommonTree tree = (CommonTree) returnName.invoke(ruleReturn);
+		                    	CommonTree tree = (CommonTree) method.invoke(ruleReturn);
 		                    	astString = tree.toStringTree();
 			                }
 			            }
@@ -260,22 +241,19 @@ public class gUnitExecuter {
             	throw new InvalidInputException();
             }
             
-            StreamVacuum stdoutVacuum = new StreamVacuum(pipedIn);
-			StreamVacuum stderrVacuum = new StreamVacuum(pipedErrIn);
-			ps.close();
-			ps2.close();
-			System.setOut(console);			// Reset standard output
-			System.setErr(consoleErr);		// Reset standard err out
-			stdoutVacuum.start();
-			stderrVacuum.start();			
-			stdoutVacuum.join();
-			stderrVacuum.join();
-			if ( stderrVacuum.toString().length()>0 ) {
-				return new gUnitTestResult(false, stderrVacuum.toString());
+            subIO.restore();
+            
+            String errorOutput = subIO.getErr();
+            String output = subIO.getOutput();
+            
+            
+            
+			if ( errorOutput.length()>0 ) {
+				return new gUnitTestResult(false, errorOutput);
 			}
 			String stdout = null;
-			if ( stdoutVacuum.toString().length()>0 ) {
-				stdout = stdoutVacuum.toString();
+			if ( output.length()>0 ) {
+				stdout = output;
 			}
 			if ( astString!=null ) {	// Return toStringTree of AST
 				return new gUnitTestResult(true, stdout, astString);
@@ -345,26 +323,9 @@ public class gUnitExecuter {
             
             Method ruleName = parser.getMethod(testRuleName);
 
-            /** Start of I/O Redirecting */
-            PipedInputStream pipedIn = new PipedInputStream();
-            PipedOutputStream pipedOut = new PipedOutputStream();
-            PipedInputStream pipedErrIn = new PipedInputStream();
-            PipedOutputStream pipedErrOut = new PipedOutputStream();
-            try {
-            	pipedOut.connect(pipedIn);
-            	pipedErrOut.connect(pipedErrIn);
-            }
-            catch(IOException e) {
-            	System.err.println("connection failed...");
-            	System.exit(1);
-            }
-            PrintStream console = System.out;
-            PrintStream consoleErr = System.err;
-            PrintStream ps = new PrintStream(pipedOut);
-            PrintStream ps2 = new PrintStream(pipedErrOut);
-            System.setOut(ps);
-            System.setErr(ps2);
-            /** End of redirecting */
+            RedirectedIO subIO = new RedirectedIO();
+            subIO.beginRedirecting();
+            
 
             /** Invoke grammar rule, and get the return value */
             Object ruleReturn = ruleName.invoke(parObj);
@@ -414,23 +375,17 @@ public class gUnitExecuter {
             	throw new InvalidInputException();
             }
 
-            StreamVacuum stdoutVacuum = new StreamVacuum(pipedIn);
-			StreamVacuum stderrVacuum = new StreamVacuum(pipedErrIn);
-			ps.close();
-			ps2.close();
-			System.setOut(console);			// Reset standard output
-			System.setErr(consoleErr);		// Reset standard err out
-			stdoutVacuum.start();
-			stderrVacuum.start();			
-			stdoutVacuum.join();
-			stderrVacuum.join();
-			if ( stderrVacuum.toString().length()>0 ) {
-				return new gUnitTestResult(false, stderrVacuum.toString());
+            subIO.restore();
+            String errorOutput = subIO.getErr();
+            String output = subIO.getOutput();
+            
+            if ( errorOutput.length()>0 ) {
+				return new gUnitTestResult(false, errorOutput);
 			}
 			
 			String stdout = null;
-			if ( stdoutVacuum.toString().length()>0 ) {
-				stdout = stdoutVacuum.toString();
+			if ( output.length()>0 ) {
+				stdout = output;
 			}
 			if ( astString!=null ) {	// Return toStringTree of AST
 				return new gUnitTestResult(true, stdout, astString);
@@ -465,6 +420,7 @@ public class gUnitExecuter {
 		StringBuffer buf = new StringBuffer();
 		BufferedReader in;
 		Thread sucker;
+		boolean sucked = false;
 		public StreamVacuum(InputStream in) {
 			this.in = new BufferedReader( new InputStreamReader(in) );
 		}
@@ -480,10 +436,14 @@ public class gUnitExecuter {
 					buf.append('\n');
 					line = in.readLine();
 				}
+				sucked = true;
 			}
 			catch (IOException ioe) {
 				System.err.println("can't read output from standard (error) output");
 			}
+		}
+		public boolean finished() {
+			return sucked;
 		}
 		/** wait for the thread to finish */
 		public void join() throws InterruptedException {
