@@ -194,8 +194,8 @@ public class gUnitExecuter {
         	Class<Lexer> lexer = (Class<Lexer>)Class.forName(lexerName);
 			Lexer lexObj = instantiateClass(lexer, input, CharStream.class);
             CommonTokenStream tokens = new CommonTokenStream(lexObj);            
-            Class parser = Class.forName(parserName);
-            Object parObj = instantiateClass(parser, tokens, TokenStream.class);      
+            Class<Parser> parser = (Class<Parser>)Class.forName(parserName);
+            Parser parObj = instantiateClass(parser, tokens, TokenStream.class);      
             
             Method ruleName = parser.getMethod(testRuleName);
 
@@ -208,7 +208,7 @@ public class gUnitExecuter {
             
             Object treeRuleReturn = null;
             if (isTreeParser){
-            	Class _return = Class.forName(parserName+"$"+testRuleName+"_return");            	
+            	Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");            	
             	Method returnName = _return.getMethod("getTree");
             	CommonTree tree = (CommonTree) returnName.invoke(ruleReturn);
 
@@ -217,8 +217,8 @@ public class gUnitExecuter {
             	// AST nodes have payload that point into token stream
             	nodes.setTokenStream(tokens);
             	// Create a tree walker attached to the nodes stream
-            	Class treeParser = Class.forName(treeParserPath);
-                Object treeParObj = instantiateClass(treeParser, nodes, TreeNodeStream.class);	// makes new instance of tree parser      
+            	Class<TreeParser> treeParser = (Class<TreeParser>)Class.forName(treeParserPath);
+                TreeParser treeParObj = instantiateClass(treeParser, nodes, TreeNodeStream.class);	// makes new instance of tree parser      
             	// Invoke the tree rule, and store the return value if there is
                 Method treeRuleName = treeParser.getMethod(testTreeRuleName);
                 treeRuleReturn = treeRuleName.invoke(treeParObj);
@@ -298,7 +298,7 @@ public class gUnitExecuter {
         	/** If return object is instanceof AST, get the toStringTree */
             if ( ruleReturn.toString().indexOf(testRuleName+"_return")>0 ) {
             	try {	// NullPointerException may happen here...
-            		Class _return = Class.forName(parserName+"$"+testRuleName+"_return");
+            		Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");
             		CommonTree tree = (CommonTree)_return.getMethod("getTree").invoke(ruleReturn);
             		return tree.toString();
             	}
