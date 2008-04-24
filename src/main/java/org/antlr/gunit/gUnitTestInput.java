@@ -27,6 +27,12 @@
 */
 package org.antlr.gunit;
 
+import java.io.IOException;
+
+import org.antlr.runtime.ANTLRFileStream;
+import org.antlr.runtime.ANTLRStringStream;
+import org.antlr.runtime.CharStream;
+
 /** A class which contains input information of an individual testuite */
 public class gUnitTestInput {
 	protected String testInput;		// a test input string for a testsuite
@@ -39,6 +45,13 @@ public class gUnitTestInput {
 		this.testInput = testInput;
 		this.inputIsFile = inputIsFile;
 		this.line = line;
+	}
+	
+	/** Set up ANTLR input stream based on input source, file or String */
+	public CharStream getInputStream() throws IOException {
+		if (inputIsFile==true )
+			return new ANTLRFileStream(testInput);
+		return new ANTLRStringStream(testInput);
 	}
 	
 	public int getLine() { return this.line; }

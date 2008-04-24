@@ -31,6 +31,7 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.*;
+
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 import org.antlr.stringtemplate.CommonGroupLoader;
@@ -182,32 +183,15 @@ public class gUnitExecuter {
 
 	// TODO: throw proper exceptions
 	protected gUnitTestResult runParser(String parserName, String lexerName, String testRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException {
-		CharStream input;
-		/** Set up ANTLR input stream based on input source, file or String */
-		if ( testInput.inputIsFile==true ) {
-			input = new ANTLRFileStream(testInput.testInput);
-		}
-		else {
-			input = new ANTLRStringStream(testInput.testInput);
-		}
-		Class lexer = null;
-		Class parser = null;
+		CharStream input = testInput.getInputStream();
         try {
             /** Use Reflection to create instances of lexer and parser */
-        	lexer = Class.forName(lexerName);
-            Class<CharStream>[] lexArgTypes = new Class[]{CharStream.class};				// assign type to lexer's args
-            Constructor lexConstructor = lexer.getConstructor(lexArgTypes);        
-            CharStream[] lexArgs = new CharStream[]{input};								// assign value to lexer's args   
-            Object lexObj = lexConstructor.newInstance(lexArgs);				// makes new instance of lexer    
-            
-            CommonTokenStream tokens = new CommonTokenStream((Lexer) lexObj);
-            
-            parser = Class.forName(parserName);
-            Class[] parArgTypes = new Class[]{TokenStream.class};				// assign type to parser's args
-            Constructor parConstructor = parser.getConstructor(parArgTypes);
-            Object[] parArgs = new Object[]{tokens};							// assign value to parser's args  
-            Object parObj = parConstructor.newInstance(parArgs);				// makes new instance of parser      
-            
+        	Class<Lexer> lexer = (Class<Lexer>)Class.forName(lexerName);
+        	Lexer lexObj = makeLexer(lexer, input);
+            CommonTokenStream tokens = new CommonTokenStream(lexObj);            
+            Class parser = Class.forName(parserName);
+            Object parObj = makeParser(parser, tokens);
+
             Method ruleName = parser.getMethod(testRuleName);
             
             RedirectedIO subIO = new RedirectedIO();
@@ -222,19 +206,15 @@ public class gUnitExecuter {
                 if ( ruleReturn.toString().indexOf(testRuleName+"_return")>0 ) {
                 	try {	// NullPointerException may happen here...
                 		Class _return = Class.forName(parserName+"$"+testRuleName+"_return");
-                		Method[] methods = _return.getDeclaredMethods();
-                		for(Method method : methods) {
-			                if ( method.getName().equals("getTree") ) {
-		                    	CommonTree tree = (CommonTree) method.invoke(ruleReturn);
-		                    	astString = tree.toStringTree();
-			                }
-			            }
+                		CommonTree tree = (CommonTree)_return.getMethod("getTree").invoke(ruleReturn);
+                		astString = tree.toString();
                 	}
                 	catch(Exception e) {
                 		System.err.println(e);
                 	}
                 }
             }
+            astString = getAstString(ruleReturn, testRuleName);
             
             /** Invalid input */
             if ( tokens.index()!=tokens.size() ) {
@@ -284,16 +264,11 @@ public class gUnitExecuter {
         throw new RuntimeException("This should be unreachable?");
 	}
 	
+	
+
 	protected gUnitTestResult runTreeParser(String parserName, String lexerName, String testRuleName, String testTreeRuleName, gUnitTestInput testInput) throws IOException, InvalidInputException  {
-		CharStream input;
+		CharStream input = testInput.getInputStream();
 		String treeParserPath;
-		/** Set up ANTLR input stream based on input source, file or String */
-		if ( testInput.inputIsFile==true ) {
-			input = new ANTLRFileStream(testInput.testInput);
-		}
-		else {
-			input = new ANTLRStringStream(testInput.testInput);
-		}
 		/** Set up appropriate path for tree parser if using package */
 		if ( grammarInfo.getHeader()!=null ) {
 			treeParserPath = grammarInfo.getHeader()+"."+grammarInfo.getTreeGrammarName();
@@ -301,24 +276,14 @@ public class gUnitExecuter {
 		else {
 			treeParserPath = grammarInfo.getTreeGrammarName();
 		}
-		Class lexer = null;
-		Class parser = null;
-		Class treeParser = null;
-        try {
+		
+		try {
             /** Use Reflection to create instances of lexer and parser */
-        	lexer = Class.forName(lexerName);
-            Class[] lexArgTypes = new Class[]{CharStream.class};				// assign type to lexer's args
-            Constructor lexConstructor = lexer.getConstructor(lexArgTypes);        
-            Object[] lexArgs = new Object[]{input};								// assign value to lexer's args   
-            Object lexObj = lexConstructor.newInstance(lexArgs);				// makes new instance of lexer    
-            
-            CommonTokenStream tokens = new CommonTokenStream((Lexer) lexObj);
-            
-            parser = Class.forName(parserName);
-            Class[] parArgTypes = new Class[]{TokenStream.class};				// assign type to parser's args
-            Constructor parConstructor = parser.getConstructor(parArgTypes);
-            Object[] parArgs = new Object[]{tokens};							// assign value to parser's args  
-            Object parObj = parConstructor.newInstance(parArgs);				// makes new instance of parser      
+        	Class<Lexer> lexer = (Class<Lexer>)Class.forName(lexerName);
+			Lexer lexObj = makeLexer(lexer, input);
+            CommonTokenStream tokens = new CommonTokenStream(lexObj);            
+            Class parser = Class.forName(parserName);
+            Object parObj = makeParser(parser, tokens);      
             
             Method ruleName = parser.getMethod(testRuleName);
 
@@ -338,37 +303,17 @@ public class gUnitExecuter {
         	// AST nodes have payload that point into token stream
         	nodes.setTokenStream(tokens);
         	// Create a tree walker attached to the nodes stream
-        	treeParser = Class.forName(treeParserPath);
-            Class[] treeParArgTypes = new Class[]{TreeNodeStream.class};		// assign type to tree parser's args
-            Constructor treeParConstructor = treeParser.getConstructor(treeParArgTypes);
-            Object[] treeParArgs = new Object[]{nodes};							// assign value to tree parser's args  
-            Object treeParObj = treeParConstructor.newInstance(treeParArgs);	// makes new instance of tree parser      
+        	Class treeParser = Class.forName(treeParserPath);
+            Object treeParObj = makeTreeParser(treeParser,nodes);	// makes new instance of tree parser      
         	// Invoke the tree rule, and store the return value if there is
             Method treeRuleName = treeParser.getMethod(testTreeRuleName);
             Object treeRuleReturn = treeRuleName.invoke(treeParObj);
 
             String astString = null;
             /** If tree rule has return value, determine if it's an AST */
-            if ( treeRuleReturn!=null ) {
-            	/** If return object is instanceof AST, get the toStringTree */
-                if ( treeRuleReturn.toString().indexOf(testTreeRuleName+"_return")>0 ) {
-                	try {	// NullPointerException may happen here...
-                		Class _treeReturn = Class.forName(treeParserPath+"$"+testTreeRuleName+"_return");
-                		Method[] methods = _treeReturn.getDeclaredMethods();
-			            for(Method method : methods) {
-			                if ( method.getName().equals("getTree") ) {
-			                	Method treeReturnName = _treeReturn.getMethod("getTree");
-		                    	CommonTree returnTree = (CommonTree) treeReturnName.invoke(treeRuleReturn);
-		                        astString = returnTree.toStringTree();
-			                }
-			            }
-                	}
-                	catch(Exception e) {
-                		System.err.println(e);
-                	}
-                }
-            }
-          
+            astString = getAstString(ruleReturn, testRuleName);
+            
+            
             /** Invalid input */
             if ( tokens.index()!=tokens.size() ) {
             	throw new InvalidInputException();
@@ -411,5 +356,48 @@ public class gUnitExecuter {
         }
         // TODO: verify this:
         throw new RuntimeException("Should not be reachable?");
+	}
+
+	//constraints elsewhere force the Lexer tested to subclass Antlr's Lexer class, is there
+	//any time in which we would want to allow testing Parsers and TreeParsers which don't
+	//subclass antlr's Parser and TreeParser classes?
+
+	private Lexer makeLexer(Class<Lexer> lexer, CharStream input) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException{
+		return instantiateClass(lexer, input, CharStream.class);
+	}
+	
+	private Object makeParser(Class parser, CommonTokenStream tokens) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        return instantiateClass(parser, new Object[]{tokens}, new Class[]{TokenStream.class});
+	}
+	
+	private Object makeTreeParser(Class treeparser, CommonTreeNodeStream nodes) throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        return instantiateClass(treeparser, nodes, TreeNodeStream.class);
+	}
+	
+	private <T> T instantiateClass(Class<T> klass, Object[] constructorArgs, Class[] argClasses) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException{
+		Constructor<T> klassConstructor = klass.getConstructor(argClasses);
+		return klassConstructor.newInstance(constructorArgs);
+	}
+	
+	private <T> T instantiateClass(Class<T> klass, Object constructorArg, Class argClass) throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+		return instantiateClass(klass, new Object[]{constructorArg}, new Class[]{argClass});
+	}
+	
+	/** If tree rule has return value, determine if it's an AST */
+	private String getAstString(Object ruleReturn, String testRuleName) {
+		if ( ruleReturn!=null ) {
+        	/** If return object is instanceof AST, get the toStringTree */
+            if ( ruleReturn.toString().indexOf(testRuleName+"_return")>0 ) {
+            	try {	// NullPointerException may happen here...
+            		Class _return = Class.forName(parserName+"$"+testRuleName+"_return");
+            		CommonTree tree = (CommonTree)_return.getMethod("getTree").invoke(ruleReturn);
+            		return tree.toString();
+            	}
+            	catch(Exception e) {
+            		System.err.println(e);
+            	}
+            }
+        }
+		return null;
 	}
 }
