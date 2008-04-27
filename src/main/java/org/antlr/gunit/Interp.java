@@ -24,7 +24,7 @@
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 package org.antlr.gunit;
 import java.io.IOException;
 
@@ -38,8 +38,8 @@ public class Interp {
 	public static void main(String[] args) throws IOException, ClassNotFoundException, RecognitionException {
 		/** Pull char from where? */
 		CharStream input = null;
-		
-	    /** Generate junit codes */
+
+		/** Generate junit codes */
 		if ( args.length>0 && args[0].equals("-o") ) {
 			if ( args.length==2 )
 				input = new ANTLRFileStream(args[1]);
@@ -49,8 +49,8 @@ public class Interp {
 			generater.compile();
 			return;
 		}
-		
-		
+
+
 		/** Run gunit tests */
 		int i = 0;
 		String responseType = "text";
@@ -62,20 +62,20 @@ public class Interp {
 			input = new ANTLRFileStream(args[i]);
 		else
 			input = new ANTLRInputStream(System.in);
-		
+
 		gUnitExecuter executer = new gUnitExecuter(parse(input), responseType);
-		
+
 		System.out.print(executer.execTest());	// unit test result
-		
+
 		//return an error code of the number of failures
 		System.exit(executer.failures.size() + executer.invalids.size()); 
 	}
-	
-		
+
+
 	public static GrammarInfo parse(CharStream input) throws RecognitionException {
 		gUnitLexer lexer = new gUnitLexer(input);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		
+
 		GrammarInfo grammarInfo = new GrammarInfo();
 		gUnitParser parser = new gUnitParser(tokens, grammarInfo);
 		parser.gUnitDef();	// parse gunit script and save elements to grammarInfo

@@ -24,19 +24,19 @@
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 package org.antlr.gunit;
 
 public abstract class Test {
 	// store essential individual test result for string template
 	protected String header;
 	protected String actual;
-	
+
 	// TODO: remove these. They're only used as part of a refactor to keep the
 	//       code cleaner. It is a mock-instanceOf() replacement.
 	public abstract int getType();
 	public abstract String getText();
-	
+
 	public abstract String getExpected();
 	public abstract String getResult(gUnitTestResult testResult);
 	public String getHeader() { return this.header; }

@@ -24,7 +24,7 @@
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 package org.antlr.gunit;
 
 import java.io.*;
@@ -41,9 +41,9 @@ import org.antlr.stringtemplate.StringTemplateGroupLoader;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 
 public class gUnitExecuter {
-	
+
 	public GrammarInfo grammarInfo;
-	
+
 	public int numOfTest;
 
 	public int numOfSuccess;
@@ -56,10 +56,10 @@ public class gUnitExecuter {
 	private String parserName;
 
 	private String lexerName;
-	
+
 	public List<Test> failures;
 	public List<Test> invalids;
-	
+
 	private boolean jsonOutput = false; 
 	public gUnitExecuter(GrammarInfo grammarInfo, String responseType) {
 		if (responseType.equalsIgnoreCase("json"))
@@ -72,11 +72,11 @@ public class gUnitExecuter {
 		failures = new ArrayList<Test>();
 		invalids = new ArrayList<Test>();
 	}
-	
+
 	public gUnitExecuter(GrammarInfo grammarInfo){
 		this(grammarInfo, "text");
 	}
-	
+
 	public String execTest() throws IOException {
 		// Set up string template for testing result
 		StringTemplate testResultST = getTemplateGroup().getInstanceOf("testResult");
@@ -90,7 +90,7 @@ public class gUnitExecuter {
 				parserName = grammarInfo.getGrammarName()+"Parser";
 				lexerName = grammarInfo.getGrammarName()+"Lexer";
 			}
-			
+
 			/*** Start Unit/Functional Testing ***/
 			if ( grammarInfo.getTreeGrammarName()!=null ) {	// Execute unit test of for tree grammar
 				testResultST.setAttribute("kind_of_grammar", "tree grammar");
@@ -103,7 +103,7 @@ public class gUnitExecuter {
 				testResultST.setAttribute("kind_of_grammar", "grammar");
 				executeTests(false);
 			}	// End of exection of unit testing
-			
+
 			// Fill in the template holes with the test results
 			testResultST.setAttribute("num_of_test", numOfTest);
 			testResultST.setAttribute("num_of_failure", numOfFailure);
@@ -117,12 +117,12 @@ public class gUnitExecuter {
 			}
 		}
 		catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+			e.printStackTrace();
+			System.exit(1);
+		}
 		return testResultST.toString();
 	}
-	
+
 	private StringTemplateGroup getTemplateGroup() {
 		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
 		StringTemplateGroup.registerGroupLoader(loader);
@@ -133,10 +133,10 @@ public class gUnitExecuter {
 		StringTemplateGroup group = StringTemplateGroup.loadGroup(templateName);
 		return group;
 	}
-	
 
-	
-	
+
+
+
 	private void executeTests(boolean isTreeTests) throws IOException, ClassNotFoundException  {
 		for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 			String rule = ts.rule;
@@ -158,11 +158,11 @@ public class gUnitExecuter {
 					invalids.add(test);
 					continue;
 				}
-				
+
 				String expected = test.getExpected();
 				String actual = test.getResult(result);
 				test.setActual(actual);
-				
+
 				if (actual == null) {
 					numOfFailure++;
 					test.setHeader(rule, treeRule, numOfTest, input.getLine());
@@ -202,59 +202,59 @@ public class gUnitExecuter {
 			}
 		}
 		try {
-            /** Use Reflection to create instances of lexer and parser */
-        	Class<Lexer> lexer = (Class<Lexer>)Class.forName(lexerName);
+			/** Use Reflection to create instances of lexer and parser */
+			Class<Lexer> lexer = (Class<Lexer>)Class.forName(lexerName);
 			Lexer lexObj = instantiateClass(lexer, input, CharStream.class);
-            CommonTokenStream tokens = new CommonTokenStream(lexObj);            
-            Class<Parser> parser = (Class<Parser>)Class.forName(parserName);
-            Parser parObj = instantiateClass(parser, tokens, TokenStream.class);      
-            
-            Method ruleName = parser.getMethod(testRuleName);
+			CommonTokenStream tokens = new CommonTokenStream(lexObj);            
+			Class<Parser> parser = (Class<Parser>)Class.forName(parserName);
+			Parser parObj = instantiateClass(parser, tokens, TokenStream.class);      
 
-            RedirectedIO subIO = new RedirectedIO();
-            subIO.beginRedirecting();
-            
+			Method ruleName = parser.getMethod(testRuleName);
 
-            /** Invoke grammar rule, and get the return value */
-            Object ruleReturn = ruleName.invoke(parObj);
-            
-            Object treeRuleReturn = null;
-            if (isTreeParser){
-            	Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");            	
-            	Method returnName = _return.getMethod("getTree");
-            	CommonTree tree = (CommonTree) returnName.invoke(ruleReturn);
+			RedirectedIO subIO = new RedirectedIO();
+			subIO.beginRedirecting();
 
-            	// Walk resulting tree; create tree nodes stream first
-            	CommonTreeNodeStream nodes = new CommonTreeNodeStream(tree);
-            	// AST nodes have payload that point into token stream
-            	nodes.setTokenStream(tokens);
-            	// Create a tree walker attached to the nodes stream
-            	Class<TreeParser> treeParser = (Class<TreeParser>)Class.forName(treeParserPath);
-                TreeParser treeParObj = instantiateClass(treeParser, nodes, TreeNodeStream.class);	// makes new instance of tree parser      
-            	// Invoke the tree rule, and store the return value if there is
-                Method treeRuleName = treeParser.getMethod(testTreeRuleName);
-                treeRuleReturn = treeRuleName.invoke(treeParObj);
-            }
-            
-            /** If tree rule has return value, determine if it's an AST */
-            String astString = getAstString(ruleReturn, testRuleName); 
-            
-            
-            
-            
-            /** Invalid input */
-            if ( tokens.index()!=tokens.size() ) {
-            	throw new InvalidInputException();
-            }
 
-            subIO.restore();
-            String errorOutput = subIO.getErr();
-            String output = subIO.getOutput();
-            
-            if ( errorOutput.length()>0 ) {
+			/** Invoke grammar rule, and get the return value */
+			Object ruleReturn = ruleName.invoke(parObj);
+
+			Object treeRuleReturn = null;
+			if (isTreeParser){
+				Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");            	
+				Method returnName = _return.getMethod("getTree");
+				CommonTree tree = (CommonTree) returnName.invoke(ruleReturn);
+
+				// Walk resulting tree; create tree nodes stream first
+				CommonTreeNodeStream nodes = new CommonTreeNodeStream(tree);
+				// AST nodes have payload that point into token stream
+				nodes.setTokenStream(tokens);
+				// Create a tree walker attached to the nodes stream
+				Class<TreeParser> treeParser = (Class<TreeParser>)Class.forName(treeParserPath);
+				TreeParser treeParObj = instantiateClass(treeParser, nodes, TreeNodeStream.class);	// makes new instance of tree parser      
+				// Invoke the tree rule, and store the return value if there is
+				Method treeRuleName = treeParser.getMethod(testTreeRuleName);
+				treeRuleReturn = treeRuleName.invoke(treeParObj);
+			}
+
+			/** If tree rule has return value, determine if it's an AST */
+			String astString = getAstString(ruleReturn, testRuleName); 
+
+
+
+
+			/** Invalid input */
+			if ( tokens.index()!=tokens.size() ) {
+				throw new InvalidInputException();
+			}
+
+			subIO.restore();
+			String errorOutput = subIO.getErr();
+			String output = subIO.getOutput();
+
+			if ( errorOutput.length()>0 ) {
 				return new gUnitTestResult(false, errorOutput);
 			}
-			
+
 			String stdout = null;
 			if ( output.length()>0 ) {
 				stdout = output;
@@ -271,52 +271,52 @@ public class gUnitExecuter {
 				return new gUnitTestResult(true, stdout, String.valueOf(ruleReturn));
 			}
 			return new gUnitTestResult(true, stdout, stdout);
-        } catch (SecurityException e) {
-            e.printStackTrace(); System.exit(1);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace(); System.exit(1);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace(); System.exit(1);
-        } catch (InstantiationException e) {
-            e.printStackTrace(); System.exit(1);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace(); System.exit(1);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace(); System.exit(1);
-        }
-        //unreachable, but required:
-        return null;
+		} catch (SecurityException e) {
+			e.printStackTrace(); System.exit(1);
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace(); System.exit(1);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace(); System.exit(1);
+		} catch (InstantiationException e) {
+			e.printStackTrace(); System.exit(1);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace(); System.exit(1);
+		} catch (InvocationTargetException e) {
+			e.printStackTrace(); System.exit(1);
+		}
+		//unreachable, but required:
+		return null;
 	}
-	
 
 
-	
-	
-	
+
+
+
+
 	private <T> T instantiateClass(Class<T> klass, Object[] constructorArgs, Class[] argClasses) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException{
 		Constructor<T> klassConstructor = klass.getConstructor(argClasses);
 		return klassConstructor.newInstance(constructorArgs);
 	}
-	
+
 	private <T> T instantiateClass(Class<T> klass, Object constructorArg, Class argClass) throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
 		return instantiateClass(klass, new Object[]{constructorArg}, new Class[]{argClass});
 	}
-	
+
 	/** If tree rule has return value, determine if it's an AST */
 	private String getAstString(Object ruleReturn, String testRuleName) {
 		if ( ruleReturn!=null ) {
-        	/** If return object is instanceof AST, get the toStringTree */
-            if ( ruleReturn.toString().indexOf(testRuleName+"_return")>0 ) {
-            	try {	// NullPointerException may happen here...
-            		Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");
-            		CommonTree tree = (CommonTree)_return.getMethod("getTree").invoke(ruleReturn);
-            		return tree.toString();
-            	}
-            	catch(Exception e) {
-            		System.err.println(e);
-            	}
-            }
-        }
+			/** If return object is instanceof AST, get the toStringTree */
+			if ( ruleReturn.toString().indexOf(testRuleName+"_return")>0 ) {
+				try {	// NullPointerException may happen here...
+					Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");
+					CommonTree tree = (CommonTree)_return.getMethod("getTree").invoke(ruleReturn);
+					return tree.toString();
+				}
+				catch(Exception e) {
+					System.err.println(e);
+				}
+			}
+		}
 		return null;
 	}
 }
