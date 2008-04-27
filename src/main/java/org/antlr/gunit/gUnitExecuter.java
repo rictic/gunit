@@ -57,8 +57,8 @@ public class gUnitExecuter {
 
 	private String lexerName;
 	
-	public List<AbstractTest> failures;
-	public List<AbstractTest> invalids;
+	public List<Test> failures;
+	public List<Test> invalids;
 	
 	private boolean jsonOutput = false; 
 	public gUnitExecuter(GrammarInfo grammarInfo, String responseType) {
@@ -69,8 +69,8 @@ public class gUnitExecuter {
 		numOfSuccess = 0;
 		numOfFailure = 0;
 		numOfInvalidInput = 0;
-		failures = new ArrayList<AbstractTest>();
-		invalids = new ArrayList<AbstractTest>();
+		failures = new ArrayList<Test>();
+		invalids = new ArrayList<Test>();
 	}
 	
 	public gUnitExecuter(GrammarInfo grammarInfo){
@@ -144,11 +144,11 @@ public class gUnitExecuter {
 			if (isTreeTests) {
 				treeRule = ts.treeRule;
 			}
-			for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
+			for ( gUnitTestInput input: ts.tests.keySet() ) {	// each rule may contain multiple tests
 				numOfTest++;
 				// Run parser, and get the return value or stdout or stderr if there is
 				gUnitTestResult result = null;
-				AbstractTest test = ts.testSuites.get(input);
+				Test test = ts.tests.get(input);
 				try {
 					result = runParser(parserName, lexerName, rule, treeRule, input);
 				} catch ( InvalidInputException e) {
@@ -173,7 +173,7 @@ public class gUnitExecuter {
 					numOfSuccess++;
 				}
 				// TODO: something with ACTIONS - at least create action test type and throw exception.
-				else if ( ts.testSuites.get(input).getType()==6 ) {	// expected Token: ACTION
+				else if ( ts.tests.get(input).getType()==6 ) {	// expected Token: ACTION
 					numOfFailure++;
 					test.setHeader(rule, treeRule, numOfTest, input.getLine());
 					test.setActual("\t"+"{ACTION} is not supported in the grammarInfo yet...");

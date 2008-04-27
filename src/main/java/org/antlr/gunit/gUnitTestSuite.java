@@ -39,7 +39,7 @@ public class gUnitTestSuite {
 	 *  In other words, it maps input data for unit test (gUnitTestInput object)
 	 *  to an expected output (Token object).
 	 */
-	protected Map<gUnitTestInput, AbstractTest> testSuites = new LinkedHashMap<gUnitTestInput, AbstractTest>();
+	protected Map<gUnitTestInput, Test> tests = new LinkedHashMap<gUnitTestInput, Test>();
 	
 	public gUnitTestSuite(String rule) {
 		this.rule = rule;

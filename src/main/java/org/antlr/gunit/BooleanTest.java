@@ -27,7 +27,7 @@
 */
 package org.antlr.gunit;
 
-public class BooleanTest extends AbstractTest {
+public class BooleanTest extends Test {
 	private boolean ok;
 	
 	public BooleanTest(boolean ok) {

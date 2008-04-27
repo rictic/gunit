@@ -29,7 +29,7 @@ package org.antlr.gunit;
 
 import org.antlr.runtime.Token;
 
-public class OutputTest extends AbstractTest {
+public class OutputTest extends Test {
 	private final Token token;
 	
 	public OutputTest(Token token) {

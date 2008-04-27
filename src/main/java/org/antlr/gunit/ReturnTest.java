@@ -29,7 +29,7 @@ package org.antlr.gunit;
 
 import org.antlr.runtime.Token;
 
-public class ReturnTest extends AbstractTest {
+public class ReturnTest extends Test {
 	private final Token retval;
 	
 	public ReturnTest(Token retval) {

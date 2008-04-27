@@ -27,7 +27,7 @@
 */
 package org.antlr.gunit;
 
-public abstract class AbstractTest {
+public abstract class Test {
 	// store essential individual test result for string template
 	protected String header;
 	protected String actual;

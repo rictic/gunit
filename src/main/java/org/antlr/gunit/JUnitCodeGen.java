@@ -115,15 +115,15 @@ public class JUnitCodeGen {
 		if ( grammarInfo.getTreeGrammarName()!=null ) {	// Generate junit codes of for tree grammar rule
 			for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 				int i = 0;
-				for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
+				for ( gUnitTestInput input: ts.tests.keySet() ) {	// each rule may contain multiple tests
 					i++;
 					StringTemplate testRuleMethodST;
 					/** If rule has multiple return values or ast*/
-					if ( ts.testSuites.get(input).getType()==6 && ruleWithReturn.containsKey(ts.treeRule) ) {
+					if ( ts.tests.get(input).getType()==6 && ruleWithReturn.containsKey(ts.treeRule) ) {
 						testRuleMethodST = group.getInstanceOf("testTreeRuleMethod2");
 						// note: replace newline to String ".\n", replace tab to String ".\t"
 						String inputString = input.testInput.replace("\n", "\\n").replace("\t", "\\t");
-						String outputString = ts.testSuites.get(input).getText();
+						String outputString = ts.tests.get(input).getText();
 						testRuleMethodST.setAttribute("methodName", "test"+changeFirstCapital(ts.treeRule)+"_walks_"+ 
 								changeFirstCapital(ts.rule)+i);
 						testRuleMethodST.setAttribute("testTreeRuleName", '"'+ts.treeRule+'"');
@@ -137,20 +137,20 @@ public class JUnitCodeGen {
 						testRuleMethodST = group.getInstanceOf("testTreeRuleMethod");
 						// note: replace newline to String ".\n", replace tab to String ".\t"
 						String inputString = input.testInput.replace("\n", "\\n").replace("\t", "\\t");
-						String outputString = ts.testSuites.get(input).getText();
+						String outputString = ts.tests.get(input).getText();
 						testRuleMethodST.setAttribute("methodName", "test"+changeFirstCapital(ts.treeRule)+"_walks_"+ 
 								changeFirstCapital(ts.rule)+i);
 						testRuleMethodST.setAttribute("testTreeRuleName", '"'+ts.treeRule+'"');
 						testRuleMethodST.setAttribute("testRuleName", '"'+ts.rule+'"');
 						testRuleMethodST.setAttribute("testInput", '"'+inputString+'"');
 						testRuleMethodST.setAttribute("isFile", input.inputIsFile);
-						testRuleMethodST.setAttribute("tokenType", ts.testSuites.get(input).getType());
+						testRuleMethodST.setAttribute("tokenType", ts.tests.get(input).getType());
 						
-						if ( ts.testSuites.get(input).getType()==6 ) {	// trim ';' at the end of ACTION if there is...
+						if ( ts.tests.get(input).getType()==6 ) {	// trim ';' at the end of ACTION if there is...
 							//testRuleMethodST.setAttribute("expecting", outputString.substring(0, outputString.length()-1));
 							testRuleMethodST.setAttribute("expecting", outputString);
 						}
-						else if ( ts.testSuites.get(input).getType()==7 ) {	// Expected: RETVAL
+						else if ( ts.tests.get(input).getType()==7 ) {	// Expected: RETVAL
 							testRuleMethodST.setAttribute("expecting", outputString);
 						}
 						else {	// Attach "" to expected STRING or AST
@@ -164,15 +164,15 @@ public class JUnitCodeGen {
 		else {	// Generate junit codes of for grammar rule
 			for ( gUnitTestSuite ts: grammarInfo.getRuleTestSuites() ) {
 				int i = 0;
-				for ( gUnitTestInput input: ts.testSuites.keySet() ) {	// each rule may contain multiple tests
+				for ( gUnitTestInput input: ts.tests.keySet() ) {	// each rule may contain multiple tests
 					i++;
 					StringTemplate testRuleMethodST;
 					/** If rule has multiple return values or ast*/
-					if ( ts.testSuites.get(input).getType()==6 && ruleWithReturn.containsKey(ts.rule) ) {
+					if ( ts.tests.get(input).getType()==6 && ruleWithReturn.containsKey(ts.rule) ) {
 						testRuleMethodST = group.getInstanceOf("testRuleMethod2");
 						// note: replace newline to String ".\n", replace tab to String ".\t"
 						String inputString = input.testInput.replace("\n", "\\n").replace("\t", "\\t");
-						String outputString = ts.testSuites.get(input).getText();
+						String outputString = ts.tests.get(input).getText();
 						testRuleMethodST.setAttribute("methodName", "test"+changeFirstCapital(ts.rule)+i);
 						testRuleMethodST.setAttribute("testRuleName", '"'+ts.rule+'"');
 						testRuleMethodST.setAttribute("testInput", '"'+inputString+'"');
@@ -184,18 +184,18 @@ public class JUnitCodeGen {
 						testRuleMethodST = group.getInstanceOf("testRuleMethod");
 						// note: replace newline to String ".\n", replace tab to String ".\t"
 						String inputString = input.testInput.replace("\n", "\\n").replace("\t", "\\t");
-						String outputString = ts.testSuites.get(input).getText();
+						String outputString = ts.tests.get(input).getText();
 						testRuleMethodST.setAttribute("methodName", "test"+changeFirstCapital(ts.rule)+i);
 						testRuleMethodST.setAttribute("testRuleName", '"'+ts.rule+'"');
 						testRuleMethodST.setAttribute("testInput", '"'+inputString+'"');
 						testRuleMethodST.setAttribute("isFile", input.inputIsFile);
-						testRuleMethodST.setAttribute("tokenType", ts.testSuites.get(input).getType());
+						testRuleMethodST.setAttribute("tokenType", ts.tests.get(input).getType());
 						
-						if ( ts.testSuites.get(input).getType()==6 ) {	// trim ';' at the end of ACTION if there is...
+						if ( ts.tests.get(input).getType()==6 ) {	// trim ';' at the end of ACTION if there is...
 							//testRuleMethodST.setAttribute("expecting", outputString.substring(0, outputString.length()-1));
 							testRuleMethodST.setAttribute("expecting", outputString);
 						}
-						else if ( ts.testSuites.get(input).getType()==7 ) {	// Expected: RETVAL
+						else if ( ts.tests.get(input).getType()==7 ) {	// Expected: RETVAL
 							testRuleMethodST.setAttribute("expecting", outputString);
 						}
 						else {	// Attach "" to expected STRING or AST
