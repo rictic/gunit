@@ -29,12 +29,12 @@ group gUnitJSONResults;
 
 testResult(grammar_name, num_of_test, kind_of_grammar, num_of_failure, failure, has_invalid, num_of_invalid, invalid) ::= <<
 {
-    "grammar": "<grammar_name>",
+    "grammar": <grammar_name>,
     "num_tests": <num_of_test>,
     "failures": [
-        <failure:{\{   "expected":"<it.expected>",
-    "actual":<if(!it.actual)>null<else>"<it.actual>"<endif>,
-    "rule":"<it.ruleString>",
+        <failure:{\{   "expected":<it.expected>,
+    "actual":<it.actual>,
+    "rule":<it.ruleString>,
     "test_number":<it.testNumber>,
     "line_number":<it.lineNumber>
 \}}; separator=",
@@ -42,8 +42,8 @@ testResult(grammar_name, num_of_test, kind_of_grammar, num_of_failure, failure, 
     ]
     <if(has_invalid)>
     "invalid_tests": [
-        <invalid:{\{   "message":"<it.message>",
-    "actual":"<it.actual>"
+        <invalid:{\{   "message":<it.message>,
+    "actual":<it.actual>
 \}}; separator=",
 ">
     ]

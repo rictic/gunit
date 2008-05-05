@@ -127,10 +127,14 @@ public class gUnitExecuter {
 		StringTemplateGroupLoader loader = new CommonGroupLoader("org/antlr/gunit", null);
 		StringTemplateGroup.registerGroupLoader(loader);
 		StringTemplateGroup.registerDefaultLexer(DefaultTemplateLexer.class);
-		String templateName = "gUnitTestResult";
-		if (jsonOutput)
-			templateName = "gUnitJSONResults";
-		StringTemplateGroup group = StringTemplateGroup.loadGroup(templateName);
+		StringTemplateGroup group;
+		if (jsonOutput){
+			group = StringTemplateGroup.loadGroup("gUnitJSONResults");
+			group.registerRenderer(String.class, new JSONStringRenderer());
+		}
+		else
+			group = StringTemplateGroup.loadGroup("gUnitTestResult");
+		
 		return group;
 	}
 
