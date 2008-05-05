@@ -216,8 +216,8 @@ public class gUnitExecuter {
 
 
 			/** Invoke grammar rule, and get the return value */
+//			subIO.originalSTDerr.println("Testing rule " + testRuleName + " with input " + testInput);
 			Object ruleReturn = ruleName.invoke(parObj);
-
 			Object treeRuleReturn = null;
 			if (isTreeParser){
 				Class<ParserRuleReturnScope> _return = (Class<ParserRuleReturnScope>)Class.forName(parserName+"$"+testRuleName+"_return");            	

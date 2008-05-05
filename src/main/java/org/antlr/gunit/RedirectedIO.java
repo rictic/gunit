@@ -42,8 +42,8 @@ import java.io.PrintStream;
 public class RedirectedIO {
 	private PipedInputStream pipedIn;
 	private PipedInputStream pipedErrIn;
-	private PrintStream console;
-	private PrintStream consoleErr;
+	public PrintStream originalSTDout;
+	public PrintStream originalSTDerr;
 	private PrintStream ps;
 	private PrintStream ps2;
 	private String stdOut = null;
@@ -64,8 +64,8 @@ public class RedirectedIO {
         	System.err.println("connecting Piped Streams together failed...");
         	System.exit(1);
         }
-        console = System.out;
-        consoleErr = System.err;
+        originalSTDout = System.out;
+        originalSTDerr = System.err;
         ps = new PrintStream(pipedOut);
         ps2 = new PrintStream(pipedErrOut);
         System.setOut(ps);
@@ -79,8 +79,8 @@ public class RedirectedIO {
 			throw new RuntimeException("only call restore() once per RedirectedIO, and only after calling beginRedirecting()");
 		ps.close();
 		ps2.close();
-		System.setOut(console);			// Reset standard output
-		System.setErr(consoleErr);		// Reset standard err out
+		System.setOut(originalSTDout);			// Reset standard output
+		System.setErr(originalSTDerr);		// Reset standard err out
 	}
 	
 	public String getOutput() throws IOException {

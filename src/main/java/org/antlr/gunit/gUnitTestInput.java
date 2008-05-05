@@ -55,4 +55,9 @@ public class gUnitTestInput {
 	}
 	
 	public int getLine() { return this.line; }
+	public String toString() {
+		if (inputIsFile)
+			return "file '" + testInput + "'";
+		return "<<" + testInput + ">>";
+	}
 }
